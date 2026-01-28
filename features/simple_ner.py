@@ -21,7 +21,8 @@ def identify_entities():
         print("No entities found.")
     else:
         for entity in sentence.get_spans('ner'):
-            print(f"- {entity.text} [{entity.get_label('ner').value}] (Confidence: {entity.get_label('ner').score:.2f})")
+            label = entity.get_label('ner')
+            print(f"- {entity.text} [{label.value}] (Confidence: {label.score:.2f})")
 
 if __name__ == "__main__":
     identify_entities()
