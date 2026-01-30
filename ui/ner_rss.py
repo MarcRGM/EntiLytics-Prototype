@@ -12,13 +12,20 @@ def getArticles(rss_url):
     # Avoid flicker problems from using reactive variable
     temp_results = []
 
-    for article in fetched_articles:
+    for article in fetched_articles[:3]:
         temp_results.append({
             "title" : article['title'],
             "description" : article['description'],
-            "Entities" : identify_entities(article['description'])
+            "entities" : identify_entities(article['description'])
         })
     results.set(temp_results)
+
+    for result in results.value:
+        print(f"Title: {result['title']}")
+        print(f"Description: {result['description']}")
+        print("Entities: ")
+        for ent in result['entities']:
+            print(f"{ent['text']}, {ent['label']}")
 
 def reset():
     text.set("")
