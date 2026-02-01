@@ -1,6 +1,7 @@
 import solara
 from features.simple_ner import identify_entities
 from features.rss_handler import fetch_rss_articles
+from features.transformer_ranking import entity_ranking
 
 text = solara.reactive("")
 continuous_update = solara.reactive(True)
@@ -20,6 +21,10 @@ def getArticles(rss_url):
             "description" : article['description'],
             "entities" : identify_entities(article['description'])
         })
+
+    # Check entity ranking
+    entity_ranking(temp_results[0]['description'], temp_results[0]['entities'])
+    
     results.set(temp_results)
     is_loading.set(False)
 
