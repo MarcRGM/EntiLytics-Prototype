@@ -4,16 +4,15 @@ from sentence_transformers import SentenceTransformer, util
 model = SentenceTransformer('all-MiniLM-L6-v2')
 
 def entity_ranking(article_description, entity_list):
-    # Check if there are actually entities to rank
+    # Check if there are entities to rank
     if not entity_list:
         return []
     
     # Extract just the 'text' string from each Flair dictionary and remove repeated entities
     entity_names = []
-    for item in entity_list:
+    for entity in entity_list:
         # Extract the string from the Flair dict
-        name = item['text']
-        # Only add if we haven't seen it yet (manual deduplication)
+        name = entity['text']
         if name not in entity_names:
             entity_names.append(name)
 
