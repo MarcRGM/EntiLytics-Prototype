@@ -10,3 +10,5 @@ EntiLytics is a web-based news information management system that helps users un
 - Entity‑focused extractive summarization to avoid hallucinated entities
 - Relationship mapping via sentence‑level co‑occurrence graphs
 - Storage of results and user annotations in a database for later review
+
+## Domain: [entilytics.tech](https://entilytics.tech)
