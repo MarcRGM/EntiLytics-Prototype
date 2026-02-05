@@ -16,24 +16,21 @@
         background-color: #fada7a;
         font-family: "Arial", "Helvetica", sans-serif;
       }
-      .logo {
-        margin-bottom: 20px;
-      }
-      .status {
-        color: #666;
-        font-size: 18px;
-        letter-spacing: 1px;
+      .logo { margin-bottom: 20px; }
+      .logo .enti { color: #1c6ea4; font-size: 72px; font-weight: bold; }
+      .logo .lytics { color: #578fca; font-size: 72px; font-weight: bold; }
+      .status { color: #666; font-size: 18px; letter-spacing: 1px; }
+
+      @media screen and (max-width: 600px) {
+          .logo .enti, .logo .lytics { font-size: 40px; }
+          .status { font-size: 14px; }
       }
     </style>
   </head>
   <body>
     <div class="logo">
-      <span style="color: #1c6ea4; font-size: 72px; font-weight: bold"
-        >Enti</span
-      ><span style="color: #578fca; font-size: 72px; font-weight: bold"
-        >Lytics</span
-      >
+      <span class="enti">Enti</span><span class="lytics">Lytics</span>
     </div>
     <div class="status">Coming Soon</div>
   </body>
-</html> 
+</html>
