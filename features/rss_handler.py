@@ -1,7 +1,9 @@
 # features/rss_handler.py
-
 import feedparser
 from datetime import datetime
+
+import sys
+sys.dont_write_bytecode = True
 
 def fetch_rss_articles(rss_url):
     """

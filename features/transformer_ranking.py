@@ -1,5 +1,8 @@
 from sentence_transformers import SentenceTransformer, util
 
+import sys
+sys.dont_write_bytecode = True
+
 # Load a pre-trained BERT model (all-MiniLM-L6-v2 is fast and accurate)
 model = SentenceTransformer('all-MiniLM-L6-v2')
 

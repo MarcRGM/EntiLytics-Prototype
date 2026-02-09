@@ -5,6 +5,9 @@ from itertools import combinations
 from nltk.tokenize import sent_tokenize # Split articles by sentence rather than using split('.')
 import uuid
 
+import sys
+sys.dont_write_bytecode = True
+
 # nltk requirement
 try:
     nltk.data.find('tokenizers/punkt_tab')
