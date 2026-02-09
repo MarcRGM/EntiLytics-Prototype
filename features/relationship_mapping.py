@@ -4,7 +4,7 @@ from pyvis.network import Network
 from itertools import combinations
 from nltk.tokenize import sent_tokenize # Split articles by sentence rather than using split('.')
 import uuid
-
+import re # regex
 import sys
 sys.dont_write_bytecode = True
 
@@ -80,10 +80,29 @@ def mapping(article, entities):
 
     # Give unique ID to each graphs
     unique_id = f"graph_{uuid.uuid4().hex[:8]}"
-    html_string = html_string.replace('id="mynetwork"', f'id="{unique_id}"')
-    html_string = html_string.replace("id='mynetwork'", f"id='{unique_id}'")
-    html_string = html_string.replace("getElementById('mynetwork')", f"getElementById('{unique_id}')")
-    html_string = html_string.replace('getElementById("mynetwork")', f'getElementById("{unique_id}")')
+    html_string = re.sub(r'\bmynetwork\b', unique_id, html_string)
+
+    # Remove white space at the top of the graph
+    html_string = re.sub(r'<center>\s*<h1></h1>\s*</center>', '', html_string)
+    # Replace the height in the CSS style block
+    html_string = html_string.replace(
+        'height: 500px;',
+        'height: 100%;'
+    )
+    html_string = html_string.replace(
+        '<body>',
+        '<body style="margin: 0; padding: 0; height: 100%;">'
+    )
+    html_string = html_string.replace(
+        '<html>',
+        '<html style="height: 100%;">'
+    )
+    html_string = html_string.replace(
+        '<div class="card" style="width: 100%">',
+        '<div class="card" style="width: 100%; height: 100%;">'
+    )
+
+    net.save_graph(f"graph_{unique_id}.html")
 
     return html_string
 
