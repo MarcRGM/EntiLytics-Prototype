@@ -4,6 +4,9 @@ from features.rss_handler import fetch_rss_articles
 from features.transformer_ranking import entity_ranking
 from features.relationship_mapping import mapping
 
+import sys
+sys.dont_write_bytecode = True
+
 text = solara.reactive("")
 continuous_update = solara.reactive(True)
 results = solara.reactive([])
@@ -81,8 +84,19 @@ def ArticleListings():
                 
                 if graph_code:
                     solara.Markdown("### Relationship Map:")
-                    with solara.Div(style={"height": "500px", "width": "100%", "background-color": "#FADA7A", "border-radius": "10px"}):
-                        solara.HTML(unsafe_innerHTML=graph_code)
+                    # Graph container
+                    with solara.Div(style={  
+                        "border-radius": "10px",
+                        "height": "60vh",  
+                        "min-height": "500px" 
+                    }):
+                        solara.HTML(
+                            tag="iframe",
+                            attributes={
+                                "srcdoc": graph_code,
+                                "style": "width: 100%; height: 100%; border: none; border-radius: 10px;"
+                            }
+                        )
                 else:
                     solara.Info("Not enough entities to map relationships.")
 
