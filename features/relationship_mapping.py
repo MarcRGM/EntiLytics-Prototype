@@ -49,10 +49,17 @@ def mapping(article, entities):
     net = Network(height="500px", width="100%", bgcolor="#FADA7A", font_color="#1C6EA4", notebook=True)
     # net.from_nx(graph) automatic creation with default style 
 
+    # Force the nodes to spread out neatly
+    net.barnes_hut(
+        gravity=-8000, # Pushes nodes away from each other
+        central_gravity=0.3, # Keeps the cluster centered
+        spring_length=250 # Controls the length of the lines
+    )
+
     # Add nodes and the edge connecting them
     # (ID, Visible text, Shows when hovered, Color of the circle)
     for entity in entities:
-        net.add_node(entity, label=entity, title=entity, color="white")
+        net.add_node(entity, label=entity, title=entity, color="white", shape="circle")
 
     # Iterate through the NetworkX edges to build the Pyvis map
     for u, v, data in graph.edges(data=True): # True gives the custom attributes from graph
@@ -70,9 +77,10 @@ def mapping(article, entities):
 
     # Give unique ID to each graphs
     unique_id = f"graph_{uuid.uuid4().hex[:8]}"
-    html_string = html_string.replace('"mynetwork"', f'"{unique_id}"') # with quotes
-    html_string = html_string.replace("'mynetwork'", f"'{unique_id}'") # with single quotes
     html_string = html_string.replace('id="mynetwork"', f'id="{unique_id}"')
+    html_string = html_string.replace("id='mynetwork'", f"id='{unique_id}'")
+    html_string = html_string.replace("getElementById('mynetwork')", f"getElementById('{unique_id}')")
+    html_string = html_string.replace('getElementById("mynetwork")', f'getElementById("{unique_id}")')
     net.save_graph(f"graph_{unique_id}.html")
 
     return html_string
