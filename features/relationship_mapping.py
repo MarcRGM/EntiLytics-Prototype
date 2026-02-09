@@ -49,7 +49,7 @@ def mapping(article, entities):
                     graph.add_edge(u, v, weight=1, evidence=[clean_s])
 
     # Interactive Visualization using PyVis
-    net = Network(height="500px", width="100%", bgcolor="#FADA7A", font_color="#1C6EA4", notebook=True)
+    net = Network(height="500px", width="100%", bgcolor="#FADA7A", font_color="#1C6EA4", notebook=True, cdn_resources='remote')
     # net.from_nx(graph) automatic creation with default style 
 
     # Force the nodes to spread out neatly
@@ -84,7 +84,6 @@ def mapping(article, entities):
     html_string = html_string.replace("id='mynetwork'", f"id='{unique_id}'")
     html_string = html_string.replace("getElementById('mynetwork')", f"getElementById('{unique_id}')")
     html_string = html_string.replace('getElementById("mynetwork")', f'getElementById("{unique_id}")')
-    net.save_graph(f"graph_{unique_id}.html")
 
     return html_string
 
