@@ -34,7 +34,6 @@ def getArticles(rss_url):
             "importance" : ranking,
             "graph_html": article_graph
         })
-
     
     results.set(temp_results)
     is_loading.set(False)
@@ -60,18 +59,19 @@ def ArticleListings():
                 title=f"{i}. {article['title']}", 
                 elevation=5
             ):
-                solara.Markdown(f"Description: {article['description']}")
+                solara.Markdown(f"### Description:")
+                solara.Markdown(article['description'])
                 solara.Markdown("")
                 solara.Markdown("")
 
-                solara.Markdown("Entities:")
+                solara.Markdown("### Entities:")
                 solara.Markdown("")
                 # Nested loop for entities
                 for ent in article['entities']:
                     solara.Markdown(f"Entity: {ent['text']},        Label: {ent['label']},      CF: {ent['confidence']}")
                 solara.Markdown("")
                 solara.Markdown("")
-                solara.Markdown("Entity Ranking (Top 5)")
+                solara.Markdown("### Entity Ranking (Top 5)")
                 solara.Markdown("")
 
                 for ent in article['importance']:
@@ -81,8 +81,7 @@ def ArticleListings():
                 
                 if graph_code:
                     solara.Markdown("### Relationship Map:")
-                    # We wrap it in a Div to ensure it has height
-                    with solara.Div(style={"height": "520px", "width": "100%", "background-color": "#FADA7A", "border-radius": "10px"}):
+                    with solara.Div(style={"height": "500px", "width": "100%", "background-color": "#FADA7A", "border-radius": "10px"}):
                         solara.HTML(unsafe_innerHTML=graph_code)
                 else:
                     solara.Info("Not enough entities to map relationships.")
@@ -97,6 +96,8 @@ def Page():
             "display": "flex",
             "justify-content": "center",
             "align-items": "center",
+            "padding": "2rem",
+            "gap": "1rem",
             "background-color": "#FADA7A",
         }
     ):
@@ -114,7 +115,7 @@ def Page():
 
         with solara.Card(
                 style={
-                    "padding": "3rem",
+                    "padding": "2rem",
                     "min-width": "400px",
                     "gap": "1rem",
                 },
