@@ -5,17 +5,41 @@ passwr = solara.reactive("")
 
 @solara.component
 def Page():
-    solara.lab.theme.dark = True
     solara.Style("""
-        .v-btn {
-            transition: transform 0.2s ease !important;
+        # Button
+        .v-btn, 
+        .v-btn:hover, 
+        .v-btn:focus {
+            box-shadow: none !important;
+            elevation: 0 !important;
+            transition: none !important;
         }
-        .v-btn:hover {
-            transform: translateY(-2px);
+        .push-button {
+            border: none !important;
+            border-radius: 8px !important;
+            padding: 10px 20px !important;
+            transition: none !important;
+            text-transform: none !important;
+            cursor: pointer;
+            position: relative;
+            top: 0;
         }
-        .v-btn:active {
-            transform: translateY(0px);
+        .push-button:active {
+            transform: translateY(6px) !important;
+            box-shadow: none !important;
+        } 
+        
+        .login {
+            background-color: #578FCA !important;
+            color: white !important;
+            box-shadow: 0px 6px 0px 0px #3674B5 !important; 
         }
+                 
+        .sign-up {
+            background-color: #F5F0CD !important;
+            box-shadow: 0px 6px 0px 0px #e1c46d !important; 
+        }
+    
     """)
     with solara.Column(
         style={
@@ -26,14 +50,18 @@ def Page():
             "background-color": "#FADA7A",
         }
     ):
-        with solara.Card(
+        with solara.Div(
             style={
-                "padding": "3rem",
-                "min-width": "400px",
-            },
-            elevation=8,
+                "width": "30%",
+                "height": "auto",
+            }
         ):
-            with solara.Column(style={"gap": "1.5rem"}):
+            with solara.Column(
+                style={
+                    "gap": "16px",
+                    "background-color": "#FADA7A",
+                    }
+                ):
                 solara.HTML(
                     unsafe_innerHTML="""
                     <div style="text-align: center;">
@@ -42,48 +70,24 @@ def Page():
                     </div>
                     """
                 )
-                
                 # Username
                 solara.InputText(
                     label="Username",
                     value=user,
                 )
-                
                 # Password
                 solara.InputText(
                     label="Password",
                     value=passwr,
                     password=True,
                 )
-                
-                with solara.Column():
-                    with solara.Row(
-                        justify="center",
-                        style={
-                        "width": "100%",  # Full width
-                        "gap": "1rem",    # Space between buttons
-                        }
-                    ):
-                        solara.Button(
-                            "Clear",
-                            on_click=lambda: (user.set(""), passwr.set("")),
-                            color="#CD5656",
-                            raised=True,
-                        )
-                        solara.Button(
-                            "Login",
-                            on_click=lambda: print("Login clicked"),
-                            color="#75B06F",
-                        )
-
-                    with solara.Row(
-                        justify="center",  # Centers the buttons horizontally
-                        style={
-                            "width": "100%",  # Full width 
-                        }
-                    ):
-                        solara.Button(
-                        "Register",
-                        on_click=lambda: (user.set(""), passwr.set("")),
-                        color="#58A0C8",
-                    )
+                solara.Button(
+                    "Login",
+                    on_click=lambda: print("Login clicked"),
+                    classes=["push-button", "login"]
+                )
+                solara.Button(
+                    "Sign Up",
+                    on_click=lambda: print("Sign Up clicked"),
+                    classes=["push-button", "sign-up"]
+                )
