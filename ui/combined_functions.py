@@ -15,33 +15,38 @@ is_loading = solara.reactive(False)
 def getArticles(rss_url):
     is_loading.set(True)
 
-    fetched_articles = fetch_rss_articles(rss_url)
+    try:
+        fetched_articles = fetch_rss_articles(rss_url)
 
-    # Avoid flicker problems from using reactive variable
-    temp_results = []
+        # Avoid flicker problems from using reactive variable
+        temp_results = []
 
-    # Using [:3] for quick testing
-    for article in fetched_articles[:3]:
-        extracted_entities = identify_entities(article['description'])
+        # Using [:3] for quick testing
+        for article in fetched_articles[:3]:
+            extracted_entities = identify_entities(article['description'])
+            
+            ranking = entity_ranking(article['description'], extracted_entities)
+            
+            entity_names = [ent['name'] for ent in ranking]
+            article_graph = ""
+            # Only run it if there are at least 2 entities
+            if len(entity_names) > 1:
+                article_graph = mapping(article['description'], entity_names)
+
+            temp_results.append({
+                "title" : article['title'],
+                "description" : article['description'],
+                "entities" : extracted_entities,
+                "importance" : ranking,
+                "graph_html": article_graph
+            })
         
-        ranking = entity_ranking(article['description'], extracted_entities)
+        results.set(temp_results)
+        is_loading.set(False)
         
-        entity_names = [ent['name'] for ent in ranking]
-        article_graph = ""
-        # Only run it if there are at least 2 entities
-        if len(entity_names) > 1:
-            article_graph = mapping(article['description'], entity_names)
-
-        temp_results.append({
-            "title" : article['title'],
-            "description" : article['description'],
-            "entities" : extracted_entities,
-            "importance" : ranking,
-            "graph_html": article_graph
-        })
-    
-    results.set(temp_results)
-    is_loading.set(False)
+    except Exception as e:
+        print(f"Error: {e}")
+        is_loading.set(False)
 
 def reset():
     text.set("")
