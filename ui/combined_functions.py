@@ -27,7 +27,7 @@ def getArticles(rss_url):
             
             ranking = entity_ranking(article['description'], extracted_entities)
             
-            entity_names = [ent['name'] for ent in ranking]
+            entity_names = [ent['name'] for ent in ranking[:10]]
             article_graph = ""
             # Only run it if there are at least 2 entities
             if len(entity_names) > 1:
@@ -43,7 +43,7 @@ def getArticles(rss_url):
         
         results.set(temp_results)
         is_loading.set(False)
-        
+
     except Exception as e:
         print(f"Error: {e}")
         is_loading.set(False)
