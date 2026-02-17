@@ -13,6 +13,8 @@ results = solara.reactive([])
 is_loading = solara.reactive(False) 
 
 def getArticles(rss_url):
+    is_loading.set(True)
+
     fetched_articles = fetch_rss_articles(rss_url)
 
     # Avoid flicker problems from using reactive variable
