@@ -4,11 +4,11 @@ from flair.nn import Classifier
 import sys
 sys.dont_write_bytecode = True
 
+# Load the standard English NER model 
+# 'ner-fast' for a smaller, faster BiLSTM model if preferred
+tagger = Classifier.load('ner')
+
 def identify_entities(input):
-    # Load the standard English NER model 
-    # 'ner-fast' for a smaller, faster BiLSTM model if preferred
-    tagger = Classifier.load('ner')
-    
     # Create a Flair Sentence object
     sentence = Sentence(input)
 
