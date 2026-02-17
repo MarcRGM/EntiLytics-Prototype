@@ -26,7 +26,7 @@ def identify_entities(input):
             results.append({
             "text": entity.text,
             "label": label.value,
-            "confidence": f"{label.score:.2f}"
+            "confidence": round(label.score, 2)
         })
     return results
 
