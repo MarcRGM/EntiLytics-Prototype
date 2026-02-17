@@ -31,7 +31,7 @@ def entity_ranking(article_description, entity_list):
     # Build the list of results
     final_rankings = []
     for index, entity_name in enumerate(entity_names):
-        # The order in cosine_scores exactly matches the order in unique_entities
+        # The order in cosine_scores exactly matches the order in entity_names
         importance_score = cosine_scores[index].item()
         final_rankings.append({
             "name": entity_name,
