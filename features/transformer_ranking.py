@@ -1,10 +1,17 @@
 from sentence_transformers import SentenceTransformer, util
-
+import nltk
+from nltk.tokenize import sent_tokenize # Split articles by sentence rather than using split('.')
 import sys
 sys.dont_write_bytecode = True
 
 # Load a pre-trained BERT model (all-MiniLM-L6-v2 is fast and accurate)
 model = SentenceTransformer('all-MiniLM-L6-v2')
+
+# nltk requirement
+try:
+    nltk.data.find('tokenizers/punkt_tab')
+except LookupError:
+    nltk.download('punkt_tab', quiet=True)
 
 def entity_ranking(article_description, entity_list):
     # Check if there are entities to rank
@@ -49,4 +56,6 @@ def entity_ranking(article_description, entity_list):
 
     # return final_rankings[:5]
 
-    
+def generate_summary(article_text, top_entities):
+    # Split into sentences
+    sentences = sent_tokenize(article_text)
