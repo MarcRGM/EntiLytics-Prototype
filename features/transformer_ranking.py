@@ -39,13 +39,14 @@ def entity_ranking(article_description, entity_list):
     final_rankings = []
     for index, entity_name in enumerate(entity_names):
         # The order in cosine_scores exactly matches the order in entity_names
-        importance_score = cosine_scores[index].item()
+        importance_score = cosine_scores[index].item() # get single number with .item
         final_rankings.append({
             "name": entity_name,
             "score": importance_score
         })
 
     # Sort by highest score first and keep the top 5
+    # USE THRESHOLD VALUE IN CHOOSING WHICH ENTITIES TO RETURN
     final_rankings.sort(key=lambda x: x['score'], reverse=True)
 
     # Print results for checking
@@ -83,6 +84,34 @@ def generate_summary(article_text, top_entities):
         return {
             'summary': article_text,
             'sentence_count': len(sentences),
-            'min_entities_used': min_entities
+            'scores': []
         }
     
+    # Encode the article into BERT vectors (Text to Numbers)
+    article_embedding = model.encode(article_text, convert_to_tensor=True)
+
+    # Store results
+    scored = []
+
+    # Loop through each sentence with its position
+    for i, sentence in enumerate(sentences):
+        # Encode the sentence
+        sentence_embedding = model.encode(sentence, convert_to_tensor=True)
+
+        # Model calculate cosine similarity
+        # Compares two vectors and returns a number from 0.0 to 1.0:
+        similarity = util.cos_sim(sentence_embedding, article_embedding).item() # get single number with .item
+
+        scored.append({
+            'text': sentence,          
+            'index': i, # Keep the position in the article
+            'score': similarity    
+        })
+    
+    # Quick testing: calculate the average score across all sentence
+    mean_score = sum(s['score'] for s in scored) / len(scored)
+    # USE THRESHOLD VALUE IN CHOOSING WHICH ENTITIES TO RETURN
+    selected = [s for s in scored if s['score'] > mean_score]
+
+    # If no sentences are above mean, decrease the threshold
+
