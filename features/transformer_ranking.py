@@ -59,25 +59,19 @@ def entity_ranking(article_description, entity_list):
 def generate_summary(article_text, top_entities, min_entities=2):
 
     """
-    Inspired by research showing variable-length summaries outperform fixed-length
-    approaches (Jia et al., 2021 - Flexible Non-Autoregressive Extractive Summarization with Threshold:
-    How to Extract a Non-Fixed Number of Summary Sentences), this function selects sentences
-    containing a minimum number of top-ranked entities, allowing summary length
-    to adapt naturally to article content.
+    The transformer model computes relevance scores for each sentence.
+    The number of sentences selected is determined by the transformer's
+    scoring.
 
     Args:
-        article_text (str): Full article text
-        top_entities (list): Top-ranked entity names from importance ranking
-        min_entities (int): Minimum entities required per sentence (1, 2, or 3)
-                           1 = More detailed summaries
-                           2 = Balanced summaries [Default]
-                           3 = Concise summaries
+        article_text: Full article text
+        top_entities: Top-ranked entity names from ranking
     
     Returns:
         dict: {
             'summary': Summary text,
-            'sentence_count': Number of sentences selected,
-            'min_entities_used': The threshold applied
+            'sentence_count': Number of sentences (model-determined),
+            'scores': List of scores for selected sentences
         }
     """
 
@@ -86,18 +80,9 @@ def generate_summary(article_text, top_entities, min_entities=2):
 
     # If already short, return as is
     if len(sentences) <= 3:
-        return article_text
-    
-    # Score each sentence by entity count
-    scored = []
-    for i, sentence in enumerate(sentences):
-        # Count how many top entities appear in the sentence
-        entity_count = sum(1 for ent in top_entities if ent.lower() in sentences.lower())
-
-        scored.append({
-            'text': sentence,
-            'index': i, # Position of the sentence
-            'score': entity_count
-        })
-
+        return {
+            'summary': article_text,
+            'sentence_count': len(sentences),
+            'min_entities_used': min_entities
+        }
     
