@@ -59,3 +59,19 @@ def entity_ranking(article_description, entity_list):
 def generate_summary(article_text, top_entities):
     # Split into sentences
     sentences = sent_tokenize(article_text)
+
+    # If already short, return as is
+    if len(sentences) <= 3:
+        return article_text
+    
+    # Score each sentence by entity count
+    scored = []
+    for i, sentence in enumerate(sentences):
+        # Count how many top entities appear in the sentence
+        entity_count = sum(1 for ent in top_entities if ent.lower() in sentences.lower())
+
+        scored.append({
+            'text': sentence,
+            'index': i, # Position of the sentence
+            'score': entity_count
+        })
