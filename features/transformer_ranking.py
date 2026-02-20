@@ -56,7 +56,7 @@ def entity_ranking(article_description, entity_list):
 
     # return final_rankings[:5]
 
-def generate_summary(article_text, top_entities, min_entities=2):
+def generate_summary(article_text, top_entities):
 
     """
     The transformer model computes relevance scores for each sentence.
