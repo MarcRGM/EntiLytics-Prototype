@@ -56,7 +56,31 @@ def entity_ranking(article_description, entity_list):
 
     # return final_rankings[:5]
 
-def generate_summary(article_text, top_entities):
+def generate_summary(article_text, top_entities, min_entities=2):
+
+    """
+    Inspired by research showing variable-length summaries outperform fixed-length
+    approaches (Jia et al., 2021 - Flexible Non-Autoregressive Extractive Summarization with Threshold:
+    How to Extract a Non-Fixed Number of Summary Sentences), this function selects sentences
+    containing a minimum number of top-ranked entities, allowing summary length
+    to adapt naturally to article content.
+
+    Args:
+        article_text (str): Full article text
+        top_entities (list): Top-ranked entity names from importance ranking
+        min_entities (int): Minimum entities required per sentence (1, 2, or 3)
+                           1 = More detailed summaries
+                           2 = Balanced summaries [Default]
+                           3 = Concise summaries
+    
+    Returns:
+        dict: {
+            'summary': Summary text,
+            'sentence_count': Number of sentences selected,
+            'min_entities_used': The threshold applied
+        }
+    """
+
     # Split into sentences
     sentences = sent_tokenize(article_text)
 
@@ -75,3 +99,5 @@ def generate_summary(article_text, top_entities):
             'index': i, # Position of the sentence
             'score': entity_count
         })
+
+    
