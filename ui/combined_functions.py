@@ -1,7 +1,7 @@
 import solara
 from features.simple_ner import identify_entities
 from features.rss_handler import fetch_rss_articles
-from features.transformer_ranking import entity_ranking
+from features.ranking_and_summarization import entity_ranking, generate_summary
 from features.relationship_mapping import mapping
 
 import sys
