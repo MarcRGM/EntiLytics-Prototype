@@ -97,8 +97,11 @@ def generate_summary(article_description, top_entities, threshold=0.7):
             'scores': []
         }
     
-    # Encode the article into BERT vectors (Text to Numbers)
-    article_embedding = model.encode(article_description, convert_to_tensor=True)
+    # Create a single string of the top entity names
+    entity_focus_string = ", ".join([ent['name'] for ent in top_entities])
+
+    # Encode the entity string into BERT vectors (Text to Numbers)
+    entities_embedding = model.encode(entity_focus_string, convert_to_tensor=True)
 
     # Store results
     scored = []
@@ -110,19 +113,35 @@ def generate_summary(article_description, top_entities, threshold=0.7):
 
         # Model calculate cosine similarity
         # Compares two vectors and returns a number from 0.0 to 1.0:
-        similarity = util.cos_sim(sentence_embedding, article_embedding).item() # get single number with .item
+        similarity = util.cos_sim(sentence_embedding, entities_embedding).item() # get single number with .item
 
-        if similarity >= threshold:
-            scored.append({
-                'text': sentence,          
-                'index': i, # Keep the position in the article
-                'score': similarity    
-            })
+        scored.append({
+            'text': sentence,          
+            'index': i, # Keep the position in the article
+            'score': similarity    
+        })
     
-    # Quick testing: calculate the average score across all sentence
-    mean_score = sum(s['score'] for s in scored) / len(scored)
-    # USE THRESHOLD VALUE IN CHOOSING WHICH ENTITIES TO RETURN
-    selected = [s for s in scored if s['score'] > mean_score ]
-
-    # If no sentences are above mean, decrease the threshold
+    # Select sentences with similarity >= threshold
+    selected = [s for s in scored if s['score'] >= threshold]
+    
+    # Fallback: If no sentences meet threshold, lower it slightly
+    if not selected:
+        threshold = 0.6
+        selected = [s for s in scored if s['score'] >= threshold]
+    
+    # Fallback: If still empty, take best sentence
+    if not selected:
+        scored.sort(key=lambda x: x['score'], reverse=True)
+        selected = [scored[0]]
+        threshold = selected[0]['score']
+    
+    # Sort by original position 
+    selected.sort(key=lambda x: x['index'])
+    
+    return {
+        'summary': ' '.join([s['text'] for s in selected]),
+        'sentence_count': len(selected),
+        'threshold_used': threshold,
+        'selected_scores': [round(s['score'], 3) for s in selected] # cosine similarity scores of each selected sentence
+    }
 
