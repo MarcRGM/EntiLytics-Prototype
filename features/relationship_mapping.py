@@ -7,6 +7,7 @@ import uuid
 import re # regex
 import sys
 sys.dont_write_bytecode = True
+from bs4 import BeautifulSoup
 
 # nltk requirement
 try:
@@ -17,6 +18,15 @@ except LookupError:
 def mapping(article, entities):
     # NetworkX Graph manages the logic and brain of the connections
     graph = nx.Graph()
+
+     # BeautifulSoup strips tags and fix spacing
+    # separator=" " let <p> tags get replaced by a space
+    soup = BeautifulSoup(article_description, "html.parser")
+    clean_text = soup.get_text(separator=" ")
+
+    # Split into sentences
+    sentences = sent_tokenize(clean_text)
+
 
     # Split by sentences to perform sentence-level analysis
     # nltk handles periods in abbreviations (e.g., Dr. or Inc.)
