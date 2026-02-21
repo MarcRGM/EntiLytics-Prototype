@@ -3,6 +3,7 @@ import nltk
 from nltk.tokenize import sent_tokenize # Split articles by sentence rather than using split('.')
 import sys
 sys.dont_write_bytecode = True
+from bs4 import BeautifulSoup
 
 # Load a pre-trained BERT model (all-MiniLM-L6-v2 is fast and accurate)
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -86,8 +87,13 @@ def generate_summary(article_description, top_entities, threshold=0.7):
     Returns a list of dictionaries 
     """
 
+    # BeautifulSoup strips tags and fix spacing
+    # separator=" " let <p> tags get replaced by a space
+    soup = BeautifulSoup(article_description, "html.parser")
+    clean_text = soup.get_text(separator=" ")
+
     # Split into sentences
-    sentences = sent_tokenize(article_description)
+    sentences = sent_tokenize(clean_text)
 
     # If already short, return as is
     if len(sentences) <= 3:
@@ -108,6 +114,7 @@ def generate_summary(article_description, top_entities, threshold=0.7):
 
     # Loop through each sentence with its position
     for i, sentence in enumerate(sentences):
+        print(sentence)
         # Encode the sentence
         sentence_embedding = model.encode(sentence, convert_to_tensor=True)
 
@@ -123,7 +130,7 @@ def generate_summary(article_description, top_entities, threshold=0.7):
     
     # Select sentences with similarity >= threshold
     selected = [s for s in scored if s['score'] >= threshold]
-    
+
     # Fallback: If no sentences meet threshold, lower it slightly
     if not selected:
         threshold = 0.6
@@ -137,11 +144,11 @@ def generate_summary(article_description, top_entities, threshold=0.7):
     
     # Sort by original position 
     selected.sort(key=lambda x: x['index'])
-    
+
     return {
         'summary': ' '.join([s['text'] for s in selected]),
         'sentence_count': len(selected),
         'threshold_used': threshold,
-        'selected_scores': [round(s['score'], 3) for s in selected] # cosine similarity scores of each selected sentence
+        'selected_scores': [round(s['score'], 3) for s in selected]
     }
 
