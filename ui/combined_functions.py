@@ -89,7 +89,7 @@ def ArticleListings():
                     solara.Markdown(f"Entity: {ent['text']},        Label: {ent['label']},      CF: {ent['confidence']}")
                 solara.Markdown("")
                 solara.Markdown("")
-                solara.Markdown("### Entity Ranking (Top 5)")
+                solara.Markdown("### Top Entities:")
                 solara.Markdown("")
 
                 for ent in article['importance']:

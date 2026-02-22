@@ -19,9 +19,9 @@ def mapping(article, entities):
     # NetworkX Graph manages the logic and brain of the connections
     graph = nx.Graph()
 
-     # BeautifulSoup strips tags and fix spacing
+    # BeautifulSoup strips tags and fix spacing
     # separator=" " let <p> tags get replaced by a space
-    soup = BeautifulSoup(article_description, "html.parser")
+    soup = BeautifulSoup(article, "html.parser")
     clean_text = soup.get_text(separator=" ")
 
     # Split into sentences
@@ -111,8 +111,6 @@ def mapping(article, entities):
         '<div class="card" style="width: 100%">',
         '<div class="card" style="width: 100%; height: 100%;">'
     )
-
-    net.save_graph(f"graph_{unique_id}.html")
 
     return html_string
 
