@@ -41,24 +41,21 @@ Rationale:
     matching with BERT models on the MRPC dataset. The value 0.50 represents 
     the mid-point
 Reference:
-    Paper Section: "Results + Discussion" (Section 4)
+    Paper Section: "Results + Discussion" 
     Specific finding: "Mid-range thresholds (around 0.4-0.6) show better balance"
     Peak performance values: Euclidean ~0.458-0.568, Manhattan ~0.455-0.596
 """
 
 def entity_ranking(article_description, entity_list):
     """
-    Following research on semantic similarity thresholds (Martes et al., 2024),
-    which found optimal cosine similarity thresholds for transformer models
-    fall within the range 0.6-0.8, with peak performance around 0.7.
+    Rank entities using Manhattan distance with threshold filtering.
 
     Args:
         article_description: Full article text
         top_entities: Top-ranked entity names from ranking
-        threshold: Cosine similarity threshold (default: 0.7)
-                   Range: 0.6-0.8 per Jiang et al. (2024)
+        threshold: Max distance (default 0.50, range 0.45-0.60)
     
-    Returns a list of dictionaries with name and score values                      
+    Returns a list of dictionaries with name and score values (entities meeting distance threshold)              
     """
 
     # Check if there are entities to rank
@@ -78,43 +75,36 @@ def entity_ranking(article_description, entity_list):
     article_vector = model.encode(article_description, convert_to_tensor=True)
     entity_vectors = model.encode(entity_names, convert_to_tensor=True)
 
-    # Compare each entity to the full article
-    # Measures how relevant an entity is by giving it a score from 0.0 (Irrelevant) to 1.0 (relevant)
-    cosine_scores = util.cos_sim(entity_vectors, article_vector)
-
-    # Build the list of results
+    # Score using Manhattan distance
     final_rankings = []
     for index, entity_name in enumerate(entity_names):
-        # The order in cosine_scores exactly matches the order in entity_names
-        importance_score = cosine_scores[index].item() # get single number with .item
-        print(f"{entity_name}: {importance_score}")
+        # Compute Manhattan distance
+        distance = cityblock(entity_vectors[index], article_vector)
+
+        # Normalize distance to 0-1 range for consistent interpretation
+        max_distance = np.linalg.norm(entity_vectors[index]) + np.linalg.norm(article_vector)
+        normalized_distance = distance / max_distance if max_distance > 0 else 1.0
+        # Returns 1.0 (Maximum Distance) if the vectors are empty to avoid division by zero
+
+        # Inverts the normalized distance into a 'Similarity Score' (0% to 100%)
+        similarity_score = 1 - normalized_distance
+
         final_rankings.append({
             "name": entity_name,
-            "score": importance_score
+            "distance": normalized_distance  # 0-1 scale, lower is better
         })
 
-    # Select entities with score >= threshold
-    selected = [ent for ent in final_rankings if ent['score'] >= threshold]
+    # Sort entities by distance in ascending order (closest first)
+    final_rankings.sort(key=lambda x: x['distance'])
 
-    # Fallback: If no entities meet threshold, lower it slightly
-    if not selected:
-        threshold = 0.6
-        selected = [ent for ent in final_rankings if ent['score'] >= threshold]
-    
-    # Fallback: If still empty, take best entity
-    if not selected:
-        final_rankings.sort(key=lambda x: x['score'], reverse=True)
-        selected = [final_rankings[0]]
-        threshold = selected[0]['score']
+    # Apply threshold filter: keep only entities within distance threshold
+    filtered_rankings = [ent for ent in final_rankings if ent['distance'] <= DISTANCE_THRESHOLD]
 
-    # Sort by highest score 
-    selected.sort(key=lambda x: x['score'], reverse=True)
+    # Make sure at least one entity is returned if any exist
+    if not filtered_rankings and final_rankings:
+        filtered_rankings = [final_rankings[0]]
 
-    # Print results for checking
-    # for entity in final_rankings:
-        # print(f"Entity: {entity['name']} | Importance: {entity['score']:.4f}")
-
-    return selected
+    return filtered_rankings
 
 def generate_summary(article_description, top_entities):
 

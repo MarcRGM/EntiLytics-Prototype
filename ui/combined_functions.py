@@ -93,7 +93,7 @@ def ArticleListings():
                 solara.Markdown("")
 
                 for ent in article['importance']:
-                    solara.Markdown(f"Entity: {ent['name']}    |   Importance: {ent['score']:.4f}")
+                    solara.Markdown(f"Entity: {ent['name']}    |   Importance: {ent['distance']:.4f}")
 
                 graph_code = article.get('graph_html')
                 
