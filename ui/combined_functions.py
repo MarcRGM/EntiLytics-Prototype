@@ -33,7 +33,7 @@ def getArticles(rss_url):
             
             ranking = entity_ranking(clean_description, extracted_entities)
             
-            #summarize = generate_summary(article['description'], ranking)
+            summarize = generate_summary(clean_description, ranking)
 
             entity_names = [ent['name'] for ent in ranking[:10]]
             article_graph = ""
@@ -47,7 +47,7 @@ def getArticles(rss_url):
                 "entities" : extracted_entities,
                 "importance" : ranking,
                 "graph_html": article_graph,
-                #"summary" : summarize['summary']
+                "summary" : summarize['summary']
             })
         
         results.set(temp_results)
@@ -83,10 +83,10 @@ def ArticleListings():
                 solara.Markdown("")
                 solara.Markdown("")
 
-                #solara.Markdown(f"### Summary:")
-                #solara.Markdown(article['summary'])
-                #solara.Markdown("")
-                #solara.Markdown("")
+                solara.Markdown(f"### Summary:")
+                solara.Markdown(article['summary'])
+                solara.Markdown("")
+                solara.Markdown("")
 
                 solara.Markdown("### Entities:")
                 solara.Markdown("")

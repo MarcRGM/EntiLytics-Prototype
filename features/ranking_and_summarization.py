@@ -129,14 +129,13 @@ def generate_summary(article_description, top_entities):
     """
 
     # Split into sentences
-    sentences = sent_tokenize(clean_text)
+    sentences = sent_tokenize(article_description)
 
     # If already short, return as is
     if len(sentences) <= 3:
         return {
             'summary': article_description,
             'sentence_count': len(sentences),
-            'scores': []
         }
     
     # Create a single string of the top entity names
@@ -144,6 +143,7 @@ def generate_summary(article_description, top_entities):
 
     # Encode the entity string into BERT vectors (Text to Numbers)
     entities_embedding = model.encode(entity_focus_string, convert_to_tensor=True)
+    entities_embedding = vector_math.normalize(entities_embedding.unsqueeze(0), p=2, dim=1)
 
     # Store results
     scored = []
@@ -152,37 +152,61 @@ def generate_summary(article_description, top_entities):
     for i, sentence in enumerate(sentences):
         # Encode the sentence
         sentence_embedding = model.encode(sentence, convert_to_tensor=True)
+        sentence_embedding = vector_math.normalize(sentence_embedding.unsqueeze(0), p=2, dim=1)
 
-        # Model calculate cosine similarity
-        # Compares two vectors and returns a number from 0.0 to 1.0:
-        similarity = util.cos_sim(sentence_embedding, entities_embedding).item() # get single number with .item
+        # Calculate the Manhattan Distance between BERT vectors
+        raw_dist = torch.dist(sentence_embedding, entities_embedding, p=1).item()
+
+        # This is the standard Geometric Scaling for Manhattan distance in BERT research
+        # Max Manhattan distance between L2-normalized vectors is 2 * sqrt(d)
+        # 384 is the dimension of the all-MiniLM-L6-v2 model
+        scaling_factor = 2 * np.sqrt(384) # This is ~19.6
+        # Scaling: Divide to get a 0.0-1.0 Distance Score
+        normalized_dist = raw_dist / scaling_factor
+
         scored.append({
             'text': sentence,          
             'index': i, # Keep the position in the article
-            'score': similarity    
+            'distance': normalized_dist    
         })
-    
-    # Select sentences with similarity >= threshold
-    selected = [s for s in scored if s['score'] >= threshold]
 
-    # Fallback: If no sentences meet threshold, lower it slightly
-    if not selected:
-        threshold = 0.6
-        selected = [s for s in scored if s['score'] >= threshold]
+    print("SENTENCES:")
+    for sen in scored:
+        print(sen['text'])
     
-    # Fallback: If still empty, take best sentence
-    if not selected:
-        scored.sort(key=lambda x: x['score'], reverse=True)
-        selected = [scored[0]]
-        threshold = selected[0]['score']
-    
+    # Apply threshold filter: keep only sentence within distance threshold
+    filtered_sentences = [s for s in scored if s['distance'] <= DISTANCE_THRESHOLD]
+
+    # Make sure at least one entity is returned if any exist
+    if not filtered_sentences and scored:
+        filtered_sentences = [scored[0]]
+
     # Sort by original position 
-    selected.sort(key=lambda x: x['index'])
+    filtered_sentences.sort(key=lambda x: x['index'])
+
+    print("")
+    print("")
+
+    print("FILTERED SENTENCE:")
+    for sen in filtered_sentences:
+        print(sen['text'])
 
     return {
-        'summary': ' '.join([s['text'] for s in selected]),
-        'sentence_count': len(selected),
-        'threshold_used': threshold,
-        'selected_scores': [round(s['score'], 3) for s in selected]
+        'summary': ' '.join([s['text'] for s in filtered_sentences]),
+        'sentence_count': len(filtered_sentences),
     }
 
+# Testing
+if __name__ == "__main__":
+    article_text = """TOKYO, Japan — In a historic move that could reshape the global semiconductor industry, the Japanese government announced a $15 billion subsidy package on Thursday to support the construction of a massive new chip manufacturing plant in Hokkaido. The facility will be jointly operated by Taiwan Semiconductor Manufacturing Company (TSMC) and local tech conglomerate Sony Group. Prime Minister Fumio Kishida hailed the agreement as a critical step toward securing Japan's technological independence. During a press conference in Tokyo, Kishida emphasized that global supply chain disruptions over the past three years made this domestic initiative an absolute necessity. The new plant, expected to begin full operations by 2028, will focus on producing advanced 12-nanometer logic chips used in electric vehicles and artificial intelligence servers. TSMC Chairman Mark Liu expressed his deep gratitude for the swift approval process and highlighted the strong engineering talent pool available in the northern island of Hokkaido. However, the ambitious project has not been without its critics. Environmental groups, including the Tokyo-based Green Earth Alliance, have raised concerns about the enormous water and electricity requirements of the proposed facility. In response, Sony Group CEO Kenichiro Yoshida assured the public that the plant would run entirely on renewable energy sources, primarily sourced from nearby offshore wind farms. The economic impact of this joint venture is expected to be staggering. Local officials project the creation of over 8,000 direct high-tech jobs, with tens of thousands of additional positions generated in supporting industries across the region. Financial markets reacted positively to the news, with shares of both TSMC and Sony surging on the Nikkei index shortly after the announcement. Meanwhile, geopolitical analysts view the collaboration as a strategic counterweight to China's growing dominance in the microchip sector. United States Secretary of Commerce Gina Raimondo issued a statement from Washington praising the alliance, noting that it aligns perfectly with America's own CHIPS Act goals. As construction crews prepare to break ground next month, the world will be watching closely to see if this multi-billion dollar gamble pays off."""
+
+    mock_top_entities = [
+        {'name': 'Taiwan Semiconductor Manufacturing Company', 'distance': 0.3120},
+        {'name': 'TSMC', 'distance': 0.3205},
+        {'name': 'Sony Group', 'distance': 0.3411},
+        {'name': 'Japan', 'distance': 0.3650},
+        {'name': 'Hokkaido', 'distance': 0.3892},
+        {'name': 'Fumio Kishida', 'distance': 0.4105}
+    ]
+
+    generate_summary(article_text, mock_top_entities)
