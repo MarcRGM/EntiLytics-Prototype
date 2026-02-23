@@ -21,8 +21,8 @@ from nltk.tokenize import sent_tokenize # Split articles by sentence rather than
 import sys
 sys.dont_write_bytecode = True
 import numpy as np
-from scipy.spatial.distance import cityblock  # Manhattan distance
-import torch
+# Used for calculating the manhattan distance from BERT vectors
+import torch 
 import torch.nn.functional as vector_math 
 
 # Load a pre-trained BERT model (all-MiniLM-L6-v2 is fast and accurate)
