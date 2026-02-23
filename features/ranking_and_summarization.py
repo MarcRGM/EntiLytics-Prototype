@@ -20,9 +20,10 @@ import nltk
 from nltk.tokenize import sent_tokenize # Split articles by sentence rather than using split('.')
 import sys
 sys.dont_write_bytecode = True
-from bs4 import BeautifulSoup
 import numpy as np
 from scipy.spatial.distance import cityblock  # Manhattan distance
+import torch
+import torch.nn.functional as vector_math 
 
 # Load a pre-trained BERT model (all-MiniLM-L6-v2 is fast and accurate)
 model = SentenceTransformer('all-MiniLM-L6-v2')
@@ -65,8 +66,9 @@ def entity_ranking(article_description, entity_list):
     # Extract just the 'text' string from each Flair dictionary and remove repeated entities
     entity_names = []
     for entity in entity_list:
-        # Extract the string from the Flair dict
-        name = entity['text']
+        # Extract the string from the Flair dict and strip trailing/leading punctuation and whitespace
+        name = entity['text'].strip(".,!?'\" ")
+
         if name not in entity_names:
             entity_names.append(name)
 
@@ -75,23 +77,27 @@ def entity_ranking(article_description, entity_list):
     article_vector = model.encode(article_description, convert_to_tensor=True)
     entity_vectors = model.encode(entity_names, convert_to_tensor=True)
 
+    # Scales BERT vectors to unit length 
+    # This ensures distances remain consistent across different article lengths
+    article_vector = vector_math.normalize(article_vector.unsqueeze(0), p=2, dim=1)
+    entity_vectors = vector_math.normalize(entity_vectors, p=2, dim=1)
+
     # Score using Manhattan distance
     final_rankings = []
     for index, entity_name in enumerate(entity_names):
-        # Compute Manhattan distance
-        distance = cityblock(entity_vectors[index], article_vector)
+        # Calculate the Manhattan Distance between BERT vectors
+        raw_dist = torch.dist(entity_vectors[index], article_vector, p=1).item()
 
-        # Normalize distance to 0-1 range for consistent interpretation
-        max_distance = np.linalg.norm(entity_vectors[index]) + np.linalg.norm(article_vector)
-        normalized_distance = distance / max_distance if max_distance > 0 else 1.0
-        # Returns 1.0 (Maximum Distance) if the vectors are empty to avoid division by zero
-
-        # Inverts the normalized distance into a 'Similarity Score' (0% to 100%)
-        similarity_score = 1 - normalized_distance
+        # This is the standard Geometric Scaling for Manhattan distance in BERT research
+        # Max Manhattan distance between L2-normalized vectors is 2 * sqrt(d)
+        # 384 is the dimension of the all-MiniLM-L6-v2 model
+        scaling_factor = 2 * np.sqrt(384) # This is ~19.6
+        # Scaling: Divide to get a 0.0-1.0 Distance Score
+        normalized_dist = raw_dist / scaling_factor
 
         final_rankings.append({
             "name": entity_name,
-            "distance": normalized_distance  # 0-1 scale, lower is better
+            "distance": round(normalized_dist, 4) # lower is better
         })
 
     # Sort entities by distance in ascending order (closest first)
@@ -121,11 +127,6 @@ def generate_summary(article_description, top_entities):
     
     Returns a list of dictionaries 
     """
-
-    # BeautifulSoup strips tags and fix spacing
-    # separator=" " let <p> tags get replaced by a space
-    soup = BeautifulSoup(article_description, "html.parser")
-    clean_text = soup.get_text(separator=" ")
 
     # Split into sentences
     sentences = sent_tokenize(clean_text)
