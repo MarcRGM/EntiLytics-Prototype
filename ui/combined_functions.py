@@ -3,6 +3,7 @@ from features.simple_ner import identify_entities
 from features.rss_handler import fetch_rss_articles
 from features.ranking_and_summarization import entity_ranking, generate_summary
 from features.relationship_mapping import mapping
+from bs4 import BeautifulSoup 
 
 import sys
 sys.dont_write_bytecode = True
@@ -23,25 +24,30 @@ def getArticles(rss_url):
 
         # Using [:3] for quick testing
         for article in fetched_articles[:3]:
-            extracted_entities = identify_entities(article['description'])
+            # BeautifulSoup strips tags and fix spacing
+            # separator=" " let <p> tags get replaced by a space
+            soup = BeautifulSoup(article['description'], "html.parser")
+            clean_description = soup.get_text(separator=" ")
+
+            extracted_entities = identify_entities(clean_description)
             
-            ranking = entity_ranking(article['description'], extracted_entities)
+            ranking = entity_ranking(clean_description, extracted_entities)
             
-            summarize = generate_summary(article['description'], ranking)
+            #summarize = generate_summary(article['description'], ranking)
 
             entity_names = [ent['name'] for ent in ranking[:10]]
             article_graph = ""
             # Only run it if there are at least 2 entities
             if len(entity_names) > 1:
-                article_graph = mapping(article['description'], entity_names)
+                article_graph = mapping(clean_description, entity_names)
 
             temp_results.append({
                 "title" : article['title'],
-                "description" : article['description'],
+                "description" : clean_description,
                 "entities" : extracted_entities,
                 "importance" : ranking,
                 "graph_html": article_graph,
-                "summary" : summarize['summary']
+                #"summary" : summarize['summary']
             })
         
         results.set(temp_results)
@@ -77,10 +83,10 @@ def ArticleListings():
                 solara.Markdown("")
                 solara.Markdown("")
 
-                solara.Markdown(f"### Summary:")
-                solara.Markdown(article['summary'])
-                solara.Markdown("")
-                solara.Markdown("")
+                #solara.Markdown(f"### Summary:")
+                #solara.Markdown(article['summary'])
+                #solara.Markdown("")
+                #solara.Markdown("")
 
                 solara.Markdown("### Entities:")
                 solara.Markdown("")
