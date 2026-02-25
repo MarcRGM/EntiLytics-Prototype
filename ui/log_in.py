@@ -1,4 +1,9 @@
 import solara
+import urllib.parse
+from features.auth_handler import get_google_login_url, exchange_code_for_user_info
+
+# Holds the user data once logged in
+current_user = solara.reactive(None)
 
 @solara.component
 def Page():
@@ -72,6 +77,40 @@ def Page():
         }
     
     """)
+
+    # Oauth logic
+    router = solara.use_router()
+    
+    # Get the raw query string 
+    raw_search = router.search or ""
+    
+    # Parse it into a dictionary
+    query_params = urllib.parse.parse_qs(raw_search)
+    
+    # Extract the code (parse_qs puts values in lists, grab the first one)
+    auth_code_list = query_params.get("code")
+    auth_code = auth_code_list[0] if auth_code_list else None
+
+    if auth_code and current_user.value is None:
+        user_info = exchange_code_for_user_info(auth_code)
+        if "error" not in user_info:
+            current_user.set(user_info)
+            # Clear the code from the URL so it doesn't try to re-authenticate
+            router.push("/login") 
+
+    # View when logged in
+    if current_user.value is not None:
+        return solara.Column(
+            align="center",
+            style={"min-height": "100vh", "justify-content": "center", "background-color": "#FADA7A"},
+            children=[
+                solara.Text(f"Welcome, {current_user.value['name']}!", style={"font-size": "32px", "font-weight": "bold", "color": "#1C6EA4"}),
+                solara.Text(f"Email: {current_user.value['email']}", style={"color": "#666"}),
+                solara.Button("Go to Dashboard", color="primary", style={"margin-top": "20px"}) 
+            ]
+        )
+
+    # View when logged out 
     with solara.Column(
         style={
             "min-height": "100vh",
@@ -105,7 +144,7 @@ def Page():
             solara.Button(
                 label="Continue with Google",
                 icon_name="mdi-google", 
-                on_click=lambda: print("Trigger Google OAuth Flow"),
+                href=get_google_login_url(),
                 classes=["push-button", "google-auth"]
             )
             solara.HTML(
