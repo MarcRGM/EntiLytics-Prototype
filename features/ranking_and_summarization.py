@@ -115,17 +115,13 @@ def entity_ranking(article_description, entity_list):
 def generate_summary(article_description, top_entities):
 
     """
-    Following research on semantic similarity thresholds (Martes et al., 2024),
-    which found optimal cosine similarity thresholds for transformer models
-    fall within the range 0.6-0.8, with peak performance around 0.7.
+    Generate summary using Manhattan distance with threshold filtering.
 
     Args:
         article_description: Full article text
         top_entities: Top-ranked entity names from ranking
-        threshold: Cosine similarity threshold (default: 0.7)
-                   Range: 0.6-0.8 per Jiang et al. (2024)
     
-    Returns a list of dictionaries 
+    Returns the summary and sentence count
     """
 
     # Split into sentences
