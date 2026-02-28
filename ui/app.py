@@ -129,8 +129,8 @@ def DashboardScreen():
         sidebar_class = "sidebar-open" if sidebar_open.value else "sidebar-closed"
         with solara.Div(classes=["sidebar", sidebar_class]):
             with solara.Column(style={"background-color": "white", "padding": "10px"}):
-                solara.Text("Saved Articles", classes=["roboto-mono-medium"], style={"font-size": "20px", "border-bottom": "2px solid #1C6EA4", "padding-bottom": "15px", "margin-bottom": "15px"})
-                solara.Text("> No articles yet", classes=["roboto-mono-regular"], style={"font-size": "14px", "opacity": "0.8"})
+                solara.Text("Saved Articles", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "font-size": "1.2rem", "border-bottom": "2px solid #1C6EA4", "padding-bottom": "15px", "margin-bottom": "15px"})
+                solara.Text("> No articles yet", classes=["roboto-mono-regular"], style={"color": "#666","font-size": "1rem", "opacity": "0.8"})
             
             # Logout logic
             def handle_logout():
@@ -156,7 +156,7 @@ def DashboardScreen():
                         solara.Text("EntiLytics is a web-based news information management system that helps users understand English online news articles by automatically extracting entities, ranking their importance, mapping relationships, and generating entity‑focused extractive summaries using a pretrained BiLSTM NER model and a transformer-based ranking module.", classes=["roboto-mono-regular"], style={"color": "#444", "line-height": "1.6"})
                         
                         solara.Text("Terms of Use", classes=["space-mono-bold"], style={"font-size": "20px", "color": "#578FCA", "margin-top": "10px"})
-                        solara.Text("By utilizing this workspace, you agree that data processed on this platform is for academic and analytical purposes. User sessions are authenticated securely via Google OAuth 2.0.", classes=["roboto-mono-regular"], style={"color": "#666", "font-size": "14px", "line-height": "1.5"})
+                        solara.Text("By using this workspace, you agree that data processed on this platform is for academic and analytical purposes. User sessions are authenticated securely via Google OAuth 2.0.", classes=["roboto-mono-regular"], style={"color": "#666", "font-size": "14px", "line-height": "1.5"})
                         
                         # Close Button
                         with solara.Row(justify="flex-end", style={"margin-top": "20px"}):
@@ -258,8 +258,8 @@ def Page():
 
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .sidebar { background-color: #1C6EA4; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; }
-        .sidebar-open { width: 250px; padding: 30px 20px; }
-        .sidebar-closed { width: 0px; padding: 0px; }
+        .sidebar-open { width: 25%; padding: 20px 20px; }
+        .sidebar-closed { width: 0%; padding: 0px; }
         .workspace { background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
         .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         
