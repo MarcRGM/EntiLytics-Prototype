@@ -1,6 +1,12 @@
 import solara
 import urllib.parse
 from features.auth_handler import get_google_login_url, exchange_code_for_user_info
+from features.simple_ner import identify_entities
+from features.rss_handler import fetch_rss_articles
+from features.ranking_and_summarization import entity_ranking, generate_summary
+from features.relationship_mapping import mapping
+from bs4 import BeautifulSoup 
+
 
 # Global app state
 current_view = solara.reactive("login") 
@@ -10,12 +16,56 @@ current_user = solara.reactive(None)
 input_mode = solara.reactive("manual") 
 sidebar_open = solara.reactive(True) 
 show_help_modal = solara.reactive(False)
+rss_link = solara.reactive("")
+is_loading = solara.reactive(False)
+
+# Manual input fields
 news_title = solara.reactive("")
 news_description = solara.reactive("")
 news_date = solara.reactive("")
 news_source = solara.reactive("")
-rss_link = solara.reactive("")
 
+# Data storage
+selected_article_data = solara.reactive(None)
+rss_feed_results = solara.reactive([]) # Stores the list of titles/dates
+
+def fetch_articles(rss_url):
+    """Fetches the list of articles without analyzing yet"""
+    is_loading.set(True)
+    try:
+        fetched = fetch_rss_articles(rss_url)
+        rss_feed_results.set(fetched)
+        selected_article_data.set(None) 
+    except Exception as e:
+        print(f"RSS Error: {e}")
+    finally:
+        is_loading.set(False)
+
+def analyze_article(article):
+    is_loading.set(True)
+    try:
+        # Clean the text using BeautifulSoup
+        soup = BeautifulSoup(article['description'], "html.parser")
+        clean_text = soup.get_text(separator=" ")
+
+        # Run NLP Pipeline
+        entities = identify_entities(clean_text)
+        rankings = entity_ranking(clean_text, entities)
+        summary = generate_summary(clean_text, rankings)
+        
+        # Generate Map
+        top_names = [e['name'] for e in rankings]
+        graph_html = mapping(clean_text, top_names) if len(top_names) > 1 else ""
+
+        selected_article_data.set({
+            "title": article['title'],
+            "original-text": clean_text,
+            "summary": summary['summary'],
+            "graph": graph_html,
+            "rankings": rankings
+        })
+    finally:
+        is_loading.set(False)
 
 # LOGIN SCREEN COMPONENT
 @solara.component
@@ -112,6 +162,7 @@ def DashboardScreen():
                         with solara.Row(justify="flex-end", style={"margin-top": "20px"}):
                             solara.Button("Close", classes=["push-button", "action-btn", "roboto-mono-medium"], on_click=lambda: show_help_modal.set(False))
 
+            # Header
             solara.HTML(unsafe_innerHTML="""
                 <div style="text-align: center; width: 100%; margin-bottom: 20px;">
                     <span class='space-mono-bold' style="color:#1C6EA4; font-size:48px;">Enti</span><span class='space-mono-bold' style="color:#578FCA; font-size:48px;">Lytics</span>
@@ -119,22 +170,60 @@ def DashboardScreen():
                 </div>
             """)
 
-            with solara.Div(classes=["form-container"]):
-                if input_mode.value == "manual":
-                    solara.InputText("News Title", value=news_title)
-                    solara.InputText("Description (Article Content)", value=news_description)
-                    solara.InputText("Date Published", value=news_date)
-                    solara.InputText("Source URL", value=news_source)
-                else:
-                    solara.InputText("Paste RSS Feed URL", value=rss_link)
+            # Loading Indicator
+            if is_loading.value:
+                solara.ProgressLinear(color="#1C6EA4")
+                solara.Text("Processing...", style={"margin-top":"10px"})
 
-                with solara.Row(justify="center", style={"margin-top": "30px", "gap": "20px", "background-color": "transparent"}):
-                    solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium"], on_click=lambda: print("Initiating BiLSTM..."))
-                    
+            # Result View (Detailed Analysis)
+            elif selected_article_data.value:
+                solara.Button("← Back to List", on_click=lambda: selected_article_data.set(None), text=True)
+                solara.Text(selected_article_data.value['title'], style={"font-size":"24px", "font-weight":"bold"})
+                solara.Markdown(f"### Summary\n{selected_article_data.value['summary']}")
+                if selected_article_data.value['graph']:
+                    solara.HTML(tag="iframe", attributes={"srcdoc": selected_article_data.value['graph'], "style": "width:100%; height:500px; border:none; border-radius:10px;"})
+
+            # Input View (Manual or RSS)
+            else:
+                with solara.Div(classes=["form-container"]):
                     if input_mode.value == "manual":
-                        solara.Button("Switch to RSS", classes=["push-button", "toggle-btn", "roboto-mono-medium"], on_click=lambda: input_mode.set("rss"))
+                        solara.InputText("News Title", value=news_title)
+                        solara.InputText("Description (Article Content)", value=news_description)
+                        solara.InputText("Date Published", value=news_date)
+                        solara.InputText("Source URL", value=news_source)
                     else:
-                        solara.Button("Switch to Manual Input", classes=["push-button", "toggle-btn", "roboto-mono-medium"], on_click=lambda: input_mode.set("manual"))
+                        # RSS Input field
+                        solara.InputText("Paste RSS Feed URL", value=rss_link)
+
+                    # Action Buttons Row
+                    with solara.Row(justify="center", style={"margin-top": "30px", "gap": "20px", "background-color": "transparent"}):
+                        if input_mode.value == "manual":
+                            # Runs the actual NLP analysis
+                            solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium"], 
+                                          on_click=lambda: analyze_article({'title': news_title.value, 'description': news_description.value}))
+                            
+                            solara.Button("Switch to RSS", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
+                                          on_click=lambda: input_mode.set("rss"))
+                        else:
+                            # Fetches the RSS list metadata
+                            solara.Button("Fetch Articles", classes=["push-button", "action-btn", "roboto-mono-medium"], 
+                                          on_click=lambda: fetch_articles(rss_link.value))
+                            
+                            solara.Button("Switch to Manual Input", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
+                                          on_click=lambda: input_mode.set("manual"))
+
+                # RSS Article List Results (Only shows if articles were fetched)
+                if input_mode.value == "rss" and rss_feed_results.value:
+                    with solara.Column(style={"width": "100%", "margin-top": "40px"}):
+                        for article in rss_feed_results.value:
+                            with solara.Div(classes=["rss-item-row"], style={"padding":"15px", "display":"flex", "justify-content":"space-between", "align-items":"center"}):
+                                with solara.Column():
+                                    solara.Text(article['title'], classes=["roboto-mono-medium"])
+                                    solara.Text(article['published'], style={"font-size":"12px", "color":"#666"})
+                                
+                                solara.Button("Analyze Now", classes=["push-button", "action-btn", "analyze-btn"], 
+                                              on_click=lambda a=article: analyze_article(a))
+
 
 # MASTER PAGE (INJECTS CSS ONCE)
 @solara.component
@@ -169,43 +258,33 @@ def Page():
                  
         /* Help Button */
         .help-btn { 
-            position: absolute !important; 
-            top: 30px; 
-            right: 30px; 
-            background-color: transparent !important; 
-            color: #1C6EA4 !important; 
-            font-size: 24px !important; 
-            min-width: 0 !important; 
-            padding: 0 !important; 
-            box-shadow: none !important; 
+            position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; 
         }
         .help-btn:hover { color: #578FCA !important; }
 
         /* Custom Modal CSS */
         .modal-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100vw; height: 100vh;
-            background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */
-            z-index: 9999; /* Force to the front */
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            backdrop-filter: blur(4px); /* frosted glass effect */
+            position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */
         }
         .modal-content {
-            background-color: #FFFFFF;
-            padding: 40px;
-            border-radius: 12px;
-            width: 50%;
-            min-width: 400px;
-            max-width: 600px;
-            border: 2px solid #1C6EA4;
-            box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            max-height: 80vh;
-            overflow-y: auto;
+            background-color: #FFFFFF; padding: 40px;border-radius: 12px; width: 50%; min-width: 400px; max-width: 600px; border: 2px solid #1C6EA4; box-shadow: 0px 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto;
+        }
+                 
+        /* RSS List Hover Effects */
+        .rss-item-row {
+            transition: background-color 0.2s;
+            border-radius: 8px;
+            margin-bottom: 5px;
+        }
+        .rss-item-row:hover {
+            background-color: rgba(28, 110, 164, 0.1) !important;
+        }
+        .analyze-btn {
+            opacity: 0;
+            transition: opacity 0.2s;
+        }
+        .rss-item-row:hover .analyze-btn {
+            opacity: 1;
         }
     """)
 
