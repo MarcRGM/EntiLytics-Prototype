@@ -9,6 +9,7 @@ current_user = solara.reactive(None)
 # Dashboard state
 input_mode = solara.reactive("manual") 
 sidebar_open = solara.reactive(True) 
+show_help_modal = solara.reactive(False)
 news_title = solara.reactive("")
 news_description = solara.reactive("")
 news_date = solara.reactive("")
@@ -90,7 +91,26 @@ def DashboardScreen():
 
         # Right Workspace
         with solara.Div(classes=["workspace"], style={"position": "relative"}):
+            # Hamburger Menu
             solara.Button(icon_name="mdi-menu", classes=["menu-btn"], on_click=lambda: sidebar_open.set(not sidebar_open.value))
+
+            # Help Button 
+            solara.Button(icon_name="mdi-help-circle-outline", classes=["help-btn"], on_click=lambda: show_help_modal.set(True))
+
+            # Pop-Up Modal
+            if show_help_modal.value:
+                with solara.Div(classes=["modal-overlay"]):
+                    with solara.Div(classes=["modal-content"]):
+                        solara.Text("About EntiLytics", classes=["space-mono-bold"], style={"font-size": "28px", "color": "#1C6EA4", "border-bottom": "2px solid #FADA7A", "padding-bottom": "10px"})
+                        
+                        solara.Text("EntiLytics is a web-based news information management system that helps users understand English online news articles by automatically extracting entities, ranking their importance, mapping relationships, and generating entity‑focused extractive summaries using a pretrained BiLSTM NER model and a transformer-based ranking module.", classes=["roboto-mono-regular"], style={"color": "#444", "line-height": "1.6"})
+                        
+                        solara.Text("Terms of Use", classes=["space-mono-bold"], style={"font-size": "20px", "color": "#578FCA", "margin-top": "10px"})
+                        solara.Text("By utilizing this workspace, you agree that data processed on this platform is for academic and analytical purposes. User sessions are authenticated securely via Google OAuth 2.0.", classes=["roboto-mono-regular"], style={"color": "#666", "font-size": "14px", "line-height": "1.5"})
+                        
+                        # Close Button
+                        with solara.Row(justify="flex-end", style={"margin-top": "20px"}):
+                            solara.Button("Close", classes=["push-button", "action-btn", "roboto-mono-medium"], on_click=lambda: show_help_modal.set(False))
 
             solara.HTML(unsafe_innerHTML="""
                 <div style="text-align: center; width: 100%; margin-bottom: 20px;">
@@ -146,6 +166,47 @@ def Page():
         
         .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .menu-btn:hover { color: #578FCA !important; }
+                 
+        /* Help Button */
+        .help-btn { 
+            position: absolute !important; 
+            top: 30px; 
+            right: 30px; 
+            background-color: transparent !important; 
+            color: #1C6EA4 !important; 
+            font-size: 24px !important; 
+            min-width: 0 !important; 
+            padding: 0 !important; 
+            box-shadow: none !important; 
+        }
+        .help-btn:hover { color: #578FCA !important; }
+
+        /* Custom Modal CSS */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */
+            z-index: 9999; /* Force to the front */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(4px); /* frosted glass effect */
+        }
+        .modal-content {
+            background-color: #FFFFFF;
+            padding: 40px;
+            border-radius: 12px;
+            width: 50%;
+            min-width: 400px;
+            max-width: 600px;
+            border: 2px solid #1C6EA4;
+            box-shadow: 0px 10px 30px rgba(0,0,0,0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
     """)
 
     # Traffic Controller
