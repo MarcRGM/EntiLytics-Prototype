@@ -198,31 +198,47 @@ def DashboardScreen():
                     # Action Buttons Row
                     with solara.Row(justify="center", style={"margin-top": "30px", "gap": "20px", "background-color": "transparent"}):
                         if input_mode.value == "manual":
-                            # Runs the actual NLP analysis
+                            # Run NLP analysis
                             solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium"], 
                                           on_click=lambda: analyze_article({'title': news_title.value, 'description': news_description.value}))
                             
                             solara.Button("Switch to RSS", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
-                                          on_click=lambda: input_mode.set("rss"))
+                                        on_click=lambda: [
+                                            news_title.set(""),
+                                            news_description.set(""),
+                                            news_date.set(""),
+                                            news_source.set(""),
+                                            rss_feed_results.set([]), 
+                                            selected_article_data.set(None), 
+                                            input_mode.set("rss")
+                                        ])
+                        
                         else:
                             # Fetches the RSS list metadata
                             solara.Button("Fetch Articles", classes=["push-button", "action-btn", "roboto-mono-medium"], 
                                           on_click=lambda: fetch_articles(rss_link.value))
                             
                             solara.Button("Switch to Manual Input", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
-                                          on_click=lambda: input_mode.set("manual"))
-
+                                        on_click=lambda: [
+                                            rss_link.set(""),
+                                            rss_feed_results.set([]), 
+                                            selected_article_data.set(None), 
+                                            input_mode.set("manual")
+                                        ])
+                            
                 # RSS Article List Results (Only shows if articles were fetched)
                 if input_mode.value == "rss" and rss_feed_results.value:
-                    with solara.Column(style={"width": "100%", "margin-top": "40px"}):
+                    # Manual spacing
+                    solara.HTML(unsafe_innerHTML='<div style="height: 40px; width: 100%;"></div>')
+                    with solara.Column(style={"width": "100%", "padding": "0", "border-radius": "8px"}):
                         for article in rss_feed_results.value:
                             with solara.Div(classes=["rss-item-row"], style={"padding":"15px", "display":"flex", "justify-content":"space-between", "align-items":"center"}):
-                                with solara.Column():
+                                with solara.Column(style={"background-color": "transparent"}):
                                     solara.Text(article['title'], classes=["roboto-mono-medium"])
                                     solara.Text(article['published'], style={"font-size":"12px", "color":"#666"})
                                 
                                 solara.Button("Analyze Now", classes=["push-button", "action-btn", "analyze-btn"], 
-                                              on_click=lambda a=article: analyze_article(a))
+                                            on_click=lambda a=article: analyze_article(a))
 
 
 # MASTER PAGE (INJECTS CSS ONCE)
@@ -258,17 +274,12 @@ def Page():
                  
         /* Help Button */
         .help-btn { 
-            position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; 
-        }
+            position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .help-btn:hover { color: #578FCA !important; }
 
         /* Custom Modal CSS */
-        .modal-overlay {
-            position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */
-        }
-        .modal-content {
-            background-color: #FFFFFF; padding: 40px;border-radius: 12px; width: 50%; min-width: 400px; max-width: 600px; border: 2px solid #1C6EA4; box-shadow: 0px 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto;
-        }
+        .modal-overlay { position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */}
+        .modal-content { background-color: #FFFFFF; padding: 40px;border-radius: 12px; width: 50%; min-width: 400px; max-width: 600px; border: 2px solid #1C6EA4; box-shadow: 0px 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto;}
                  
         /* RSS List Hover Effects */
         .rss-item-row {
