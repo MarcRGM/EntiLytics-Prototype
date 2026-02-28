@@ -165,10 +165,6 @@ def generate_summary(article_description, top_entities):
             'index': i, # Keep the position in the article
             'distance': normalized_dist    
         })
-
-    print("SENTENCES:")
-    for sen in scored:
-        print(sen['text'])
     
     # Apply threshold filter: keep only sentence within distance threshold
     filtered_sentences = [s for s in scored if s['distance'] <= DISTANCE_THRESHOLD]
@@ -179,13 +175,6 @@ def generate_summary(article_description, top_entities):
 
     # Sort by original position 
     filtered_sentences.sort(key=lambda x: x['index'])
-
-    print("")
-    print("")
-
-    print("FILTERED SENTENCE:")
-    for sen in filtered_sentences:
-        print(sen['text'])
 
     return {
         'summary': ' '.join([s['text'] for s in filtered_sentences]),
