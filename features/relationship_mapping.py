@@ -47,9 +47,7 @@ def mapping(article, entities):
                 u, v = pair # standard placeholder names for nodes
                 
                 if graph.has_edge(u, v):
-                    # Increase the weight if it's already linked
-                    # and append the new sentence to the evidence list
-                    graph[u][v]['weight'] += 1
+                    # Append the new sentence to the evidence list
                     graph[u][v]['evidence'].append(clean_s)
                 else:
                     # Create an edge and
@@ -59,7 +57,7 @@ def mapping(article, entities):
                     graph.add_edge(u, v, weight=1, evidence=[clean_s])
 
     # Interactive Visualization using PyVis
-    net = Network(height="500px", width="100%", bgcolor="#FADA7A", font_color="#1C6EA4", notebook=True, cdn_resources='remote')
+    net = Network(height="500px", width="100%", bgcolor="white", font_color="#1C6EA4", notebook=True, cdn_resources='remote')
     # net.from_nx(graph) automatic creation with default style 
 
     # Force the nodes to spread out neatly
@@ -72,7 +70,7 @@ def mapping(article, entities):
     # Add nodes and the edge connecting them
     # (ID, Visible text, Shows when hovered, Color of the circle)
     for entity in entities:
-        net.add_node(entity, label=entity, title=entity, color="white", shape="circle")
+        net.add_node(entity, label=entity, title=entity, color="#FADA7A", shape="ellipse")
 
     # Iterate through the NetworkX edges to build the Pyvis map
     for u, v, data in graph.edges(data=True): # True gives the custom attributes from graph
@@ -81,7 +79,7 @@ def mapping(article, entities):
         
         # (Nodes to connect, line thickness, Shows when hovered, Color of the line)
         net.add_edge(u, v, 
-                    value=data['weight'],
+                    value=2,
                     title=hover_text,      
                     color="#1C6EA4")
 
