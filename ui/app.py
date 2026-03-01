@@ -212,28 +212,29 @@ def DashboardScreen():
             elif selected_article_data.value:
                 data = selected_article_data.value
                 
-                with solara.Column(style={"width": "100%", "gap": "1.25rem"}):
+                with solara.Column(style={"background": "white", "width": "100%", "gap": "1.25rem"}):
                     
                     # Header Row 
-                    with solara.Row(justify="space-between", style={"align-items": "center"}):
+                    with solara.Row(justify="space-between", style={"padding": "10px", "align-items": "center"}):
                         solara.Button("← Back to List", on_click=lambda: selected_article_data.set(None), text=True, classes=["roboto-mono-medium"])
-                        with solara.ToggleButtonsSingle(value=display_mode, classes=["toggle-btn"]):
-                            solara.Button("Summary", value="summary")
-                            solara.Button("Original Text", value="original")
+                        with solara.Div(classes=["segmented-control"]):
+                            with solara.ToggleButtonsSingle(value=display_mode, mandatory=True):
+                                solara.Button("Summary", value="summary")
+                                solara.Button("Original Text", value="original")
 
                     # Main Layout Grid
-                    with solara.Columns([8, 4], style={"gap": "1.25rem"}):
+                    with solara.Columns([8, 4], style={"gap": "1.25rem", "padding": "10px"}):
                         
                         # LEFT COLUMN: Content and Relationship Map
                         with solara.Column(style={"gap": "1.25rem"}):
-                            with solara.Div(style={"background": "white", "padding": "1.5rem", "border-radius": "0.75rem", "box-shadow": "0 4px 6px rgba(0,0,0,0.05)"}):
-                                solara.Text(data['title'], style={"font-size": "1.5rem", "font-weight": "bold", "margin-bottom": "1rem", "display": "block"})
+                            with solara.Div(style={"background": "white", "padding": "1.5rem", "border-radius": "0.12px", "box-shadow": "0 4px 6px rgba(0,0,0,0.05)"}):
+                                solara.Text(data['title'], classes=["roboto-mono-regular"], style={"font-size": "1.5rem", "font-weight": "bold", "margin-bottom": "1rem", "display": "block"})
                                 
                                 if display_mode.value == "summary":
                                     # Manhattan-distance based extractive summary
-                                    solara.Markdown(f"### BERT Summary\n{data['summary']}") 
+                                    solara.Text(data['summary'], classes=["roboto-mono-light"], style={"text-align": "justify", "display": "block", "white-space": "pre-wrap", "line-height": "1.6", "font-size": "1rem"}) 
                                 else:
-                                    solara.Text(data['original-text'], style={"white-space": "pre-wrap", "line-height": "1.6", "font-size": "1rem"})
+                                    solara.Text(data['original-text'], classes=["roboto-mono-light"], style={"text-align": "justify", "display": "block", "white-space": "pre-wrap", "line-height": "1.6", "font-size": "1rem"})
 
                             # Relationship Map
                             with solara.Div():
@@ -241,13 +242,13 @@ def DashboardScreen():
                                 if data['graph']:
                                     solara.HTML(tag="iframe", attributes={
                                         "srcdoc": data['graph'], 
-                                        "style": "width:100%; height:35rem; border:1px solid #DDD; border-radius:0.75rem; background: white;"
+                                        "style": "width:100%; height:35rem; border:1px solid #DDD; border-radius:0.12px; background: white;"
                                     })
 
                         # RIGHT COLUMN: Analytics & Annotation
                         with solara.Column(style={"gap": "1.25rem"}):
                             # Top Entities (Manhattan Distance Ranking)
-                            with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.75rem"}):
+                            with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
                                 solara.Text("Top Entities (Ranked)", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "1rem", "display": "block", "font-size": "1.1rem"})
                                 
                                 for item in data['rankings'][:8]: 
@@ -256,7 +257,7 @@ def DashboardScreen():
                                     
                                     with solara.Column(style={"margin-bottom": "0.75rem"}):
                                         with solara.Row(justify="space-between", style={"align-items": "center"}):
-                                            solara.Text(item['name'], style={"font-size": "0.875rem"})
+                                            solara.Text(item['name'], classes=["roboto-mono-regular"], style={"font-size": "0.875rem"})
                                             solara.Text(f"Dist: {item['distance']:.2f}", style={"color": "#578FCA", "font-size": "0.75rem"})
                                         
                                         solara.ProgressLinear(
@@ -266,17 +267,23 @@ def DashboardScreen():
                                         )
 
                             # Extracted Entities (Raw BiLSTM list)
-                            with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.75rem"}):
+                            with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
                                 solara.Text("Extracted Entities", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.75rem", "display": "block", "font-size": "1rem"})
                                 all_names = [e['name'] for e in data['rankings']]
                                 with solara.Row(style={"flex-wrap": "wrap", "gap": "0.5rem"}):
                                     for name in all_names:
-                                        solara.Div(name, style={"padding": "0.25rem 0.6rem", "border": "1px solid #DDD", "border-radius": "1rem", "font-size": "0.75rem", "background": "#F9F9F9"})
+                                        solara.Div(name, classes=["roboto-mono-regular"], style={"padding": "0.25rem 0.6rem", "border": "1px solid #DDD", "border-radius": "1rem", "font-size": "0.75rem", "background": "#F9F9F9"})
 
                             # Annotation Section 
-                            with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.75rem"}):
+                            with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
                                 solara.Text("Notes", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.6rem", "display": "block", "font-size": "1rem"})
-                                solara.InputText("Add annotations...", value=notes_input, continuous_update=True)
+                                with solara.Div(style={"font-size": "0.875rem"}):
+                                    solara.InputTextArea(
+                                        label="Add annotations...", 
+                                        value=notes_input, 
+                                        rows=5, 
+                                        continuous_update=True
+                                    )
                                 solara.Button("Save Analysis", classes=["push-button", "action-btn"], style={"width": "100%", "margin-top": "1rem", "font-size": "1rem"})
 
             # Input View (Manual or RSS)
@@ -333,7 +340,7 @@ def DashboardScreen():
                     # Manual spacing
                     solara.HTML(unsafe_innerHTML='<div style="height: 40px; width: 100%;"></div>')
                     # Render the list
-                    with solara.Column(style={"width": "100%", "padding": "0", "border-radius": "8px"}):
+                    with solara.Column(style={"width": "100%", "padding": "0", "border-radius": "12px"}):
                         for article in paginated_articles:
                             with solara.Div(classes=["rss-item-row"], style={"padding":"15px", "display":"flex", "justify-content":"space-between", "align-items":"center"}):
                                 with solara.Column(style={"background-color": "transparent"}):
@@ -393,26 +400,38 @@ def Page():
         .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .help-btn:hover { color: #578FCA !important; }
                  
+        /* Toggle Button */
+        .segmented-control .v-btn-toggle {
+            background-color: #f0f0f0 !important;
+            border-radius: 12px !important;
+            padding: 4px !important;
+            border: none !important;
+        }
+
+        .segmented-control .v-btn {
+            border-radius: 12px !important;
+            text-transform: none !important;
+            font-family: 'Roboto Mono', monospace !important;
+            letter-spacing: 0 !important;
+            border: none !important;
+            color: #666 !important;
+        }
+
+        .segmented-control .v-btn--active {
+            background-color: #3674B5 !important;
+            color: white !important;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
+        }
+                 
         /* Custom Modal CSS */
         .modal-overlay { position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */}
         .modal-content { background-color: #FFFFFF; padding: 40px;border-radius: 12px; width: 50%; min-width: 400px; max-width: 600px; border: 2px solid #1C6EA4; box-shadow: 0px 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto;}
                  
         /* RSS List Hover Effects */
-        .rss-item-row {
-            transition: background-color 0.2s;
-            border-radius: 8px;
-            margin-bottom: 5px;
-        }
-        .rss-item-row:hover {
-            background-color: rgba(28, 110, 164, 0.1) !important;
-        }
-        .analyze-btn {
-            opacity: 0;
-            transition: opacity 0.2s;
-        }
-        .rss-item-row:hover .analyze-btn {
-            opacity: 1;
-        }
+        .rss-item-row { transition: background-color 0.2s; border-radius: 12px; margin-bottom: 5px; } .rss-item-row:hover { background-color: rgba(28, 110, 164, 0.1) !important; }
+        .analyze-btn { opacity: 0; transition: opacity 0.2s; }
+        .rss-item-row:hover .analyze-btn { opacity: 1; }
+                 
     """)
 
     # Traffic Controller
