@@ -6,6 +6,7 @@ from nltk.tokenize import sent_tokenize # Split articles by sentence rather than
 import uuid
 import re # regex
 import sys
+import textwrap
 sys.dont_write_bytecode = True
 from bs4 import BeautifulSoup
 
@@ -57,7 +58,7 @@ def mapping(article, entities):
                     graph.add_edge(u, v, weight=1, evidence=[clean_s])
 
     # Interactive Visualization using PyVis
-    net = Network(height="500px", width="100%", bgcolor="white", font_color="#1C6EA4", notebook=True, cdn_resources='remote')
+    net = Network(height="100%", width="100%", bgcolor="white", font_color="#1C6EA4", notebook=True, cdn_resources='remote')
     # net.from_nx(graph) automatic creation with default style 
 
     # Force the nodes to spread out neatly
@@ -70,10 +71,17 @@ def mapping(article, entities):
     # Add nodes and the edge connecting them
     # (ID, Visible text, Shows when hovered, Color of the circle)
     for entity in entities:
-        net.add_node(entity, label=entity, title=entity, color="#FADA7A", shape="ellipse")
+        net.add_node(entity, label=entity, title=entity, color="#FADA7A", shape="box", font={'size': 25, 'face': 'Roboto Mono', 'color': '#1C6EA4'})
 
     # Iterate through the NetworkX edges to build the Pyvis map
     for u, v, data in graph.edges(data=True): # True gives the custom attributes from graph
+        # Wrap evidence text so it doesn't get cut off horizontally
+        # Break lines every 50 characters and replace newlines with HTML <br>
+        wrapped_evidence = []
+        for s in data['evidence']:
+            wrapped_s = "<br>".join(textwrap.wrap(s, width=30))
+            wrapped_evidence.append(wrapped_s)
+
         # title is an attribute Pyvis uses for the hover tooltip
         hover_text = "Found in:\n" + "\n".join(data['evidence'])
         
