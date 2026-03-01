@@ -18,12 +18,13 @@ sidebar_open = solara.reactive(True)
 show_help_modal = solara.reactive(False)
 rss_link = solara.reactive("")
 is_loading = solara.reactive(False)
+current_page = solara.reactive(0)
+items_per_page = 10
+error_message = solara.reactive("")
 
 # Manual input fields
 news_title = solara.reactive("")
 news_description = solara.reactive("")
-news_date = solara.reactive("")
-news_source = solara.reactive("")
 
 # Data storage
 selected_article_data = solara.reactive(None)
@@ -66,6 +67,35 @@ def analyze_article(article):
         })
     finally:
         is_loading.set(False)
+
+def handle_manual_analysis():
+    # Reset error first
+    error_message.set("")
+    
+    # Requirement check for Title and Description
+    if not news_title.value.strip() and not news_description.value.strip():
+        error_message.set("News Title and Description (Article Content) are required for manual analysis.")
+        return
+    elif not news_title.value.strip():
+        error_message.set("News Title is required for manual analysis.")
+        return
+    elif not news_description.value.strip():
+        error_message.set("Description (Article Content) is required for analysis.")
+        return
+
+    analyze_article({
+        'title': news_title.value, 
+        'description': news_description.value
+    })
+
+def handle_rss_fetch():
+    error_message.set("")
+    
+    if not rss_link.value.strip():
+        error_message.set("Please provide a valid RSS Feed URL.")
+        return
+    
+    fetch_articles(rss_link.value)
 
 # LOGIN SCREEN COMPONENT
 @solara.component
@@ -177,20 +207,22 @@ def DashboardScreen():
 
             # Result View (Detailed Analysis)
             elif selected_article_data.value:
-                solara.Button("← Back to List", on_click=lambda: selected_article_data.set(None), text=True)
-                solara.Text(selected_article_data.value['title'], style={"font-size":"24px", "font-weight":"bold"})
-                solara.Markdown(f"### Summary\n{selected_article_data.value['summary']}")
+                solara.Text(selected_article_data.value['title'], classes=["roboto-mono-medium"], style={"font-size":"24px"})
+                solara.Text(selected_article_data.value['summary'], classes=["roboto-mono-regular"])
                 if selected_article_data.value['graph']:
-                    solara.HTML(tag="iframe", attributes={"srcdoc": selected_article_data.value['graph'], "style": "width:100%; height:500px; border:none; border-radius:10px;"})
+                    solara.HTML(tag="iframe", attributes={"srcdoc": selected_article_data.value['graph'], "style": "width:100%; height:100%; border:none; border-radius:10px;"})
+                solara.Button("← Back to List", classes=["push-button", "toggle-btn", "roboto-mono-regular"], style={"margin-top": "10px"}, on_click=lambda: selected_article_data.set(None), text=True)
 
             # Input View (Manual or RSS)
             else:
                 with solara.Div(classes=["form-container"]):
+                    
+                    if error_message.value:
+                        solara.Error(error_message.value)
+
                     if input_mode.value == "manual":
                         solara.InputText("News Title", value=news_title)
                         solara.InputText("Description (Article Content)", value=news_description)
-                        solara.InputText("Date Published", value=news_date)
-                        solara.InputText("Source URL", value=news_source)
                     else:
                         # RSS Input field
                         solara.InputText("Paste RSS Feed URL", value=rss_link)
@@ -200,38 +232,43 @@ def DashboardScreen():
                         if input_mode.value == "manual":
                             # Run NLP analysis
                             solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium"], 
-                                          on_click=lambda: analyze_article({'title': news_title.value, 'description': news_description.value}))
+                                          on_click=lambda: handle_manual_analysis())
                             
                             solara.Button("Switch to RSS", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
                                         on_click=lambda: [
                                             news_title.set(""),
                                             news_description.set(""),
-                                            news_date.set(""),
-                                            news_source.set(""),
                                             rss_feed_results.set([]), 
                                             selected_article_data.set(None), 
+                                            error_message.set(""),
                                             input_mode.set("rss")
                                         ])
                         
                         else:
                             # Fetches the RSS list metadata
                             solara.Button("Fetch Articles", classes=["push-button", "action-btn", "roboto-mono-medium"], 
-                                          on_click=lambda: fetch_articles(rss_link.value))
+                                          on_click=lambda: handle_rss_fetch())
                             
                             solara.Button("Switch to Manual Input", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
                                         on_click=lambda: [
                                             rss_link.set(""),
                                             rss_feed_results.set([]), 
                                             selected_article_data.set(None), 
+                                            error_message.set(""),
                                             input_mode.set("manual")
                                         ])
                             
                 # RSS Article List Results (Only shows if articles were fetched)
                 if input_mode.value == "rss" and rss_feed_results.value:
+                    # Calculate start and end indices
+                    start = current_page.value * items_per_page
+                    end = start + items_per_page
+                    paginated_articles = rss_feed_results.value[start:end]
                     # Manual spacing
                     solara.HTML(unsafe_innerHTML='<div style="height: 40px; width: 100%;"></div>')
+                    # Render the list
                     with solara.Column(style={"width": "100%", "padding": "0", "border-radius": "8px"}):
-                        for article in rss_feed_results.value:
+                        for article in paginated_articles:
                             with solara.Div(classes=["rss-item-row"], style={"padding":"15px", "display":"flex", "justify-content":"space-between", "align-items":"center"}):
                                 with solara.Column(style={"background-color": "transparent"}):
                                     solara.Text(article['title'], classes=["roboto-mono-medium"])
@@ -239,6 +276,21 @@ def DashboardScreen():
                                 
                                 solara.Button("Analyze Now", classes=["push-button", "action-btn", "analyze-btn"], 
                                             on_click=lambda a=article: analyze_article(a))
+                    # Manual spacing
+                    solara.HTML(unsafe_innerHTML='<div style="height: 20px; width: 100%;"></div>')
+                    # Navigation Buttons
+                    with solara.Row(justify="center", style={"background-color": "transparent"}):
+                        solara.Button("Previous", 
+                                    classes=["push-button", "toggle-btn", "roboto-mono-regular"],
+                                    disabled=current_page.value == 0, 
+                                    on_click=lambda: current_page.set(current_page.value - 1))
+                        
+                        solara.Text(f"Page {current_page.value + 1}", classes=["roboto-mono-regular"], style={"margin-top": "5px", "color": "#666"})
+
+                        solara.Button("Next", 
+                                    classes=["push-button", "toggle-btn", "roboto-mono-regular"],
+                                    disabled=end >= len(rss_feed_results.value), 
+                                    on_click=lambda: current_page.set(current_page.value + 1))
 
 
 # MASTER PAGE (INJECTS CSS ONCE)
@@ -260,7 +312,7 @@ def Page():
         .sidebar { background-color: #1C6EA4; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; }
         .sidebar-open { width: 25%; padding: 20px 20px; }
         .sidebar-closed { width: 0%; padding: 0px; }
-        .workspace { background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        .workspace { width: 75%; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
         .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         
         .push-button { border: none !important; border-radius: 8px !important; padding: 10px 20px !important; transition: none !important; text-transform: none !important; cursor: pointer; position: relative; top: 0; }
@@ -268,7 +320,7 @@ def Page():
         
         .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #134B70 !important; border: 1px solid #134B70 !important; }
         .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; border: 1px solid #DDDDDD !important; }
-        
+                 
         .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .menu-btn:hover { color: #578FCA !important; }
                  
