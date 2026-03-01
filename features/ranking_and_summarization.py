@@ -34,13 +34,14 @@ try:
 except LookupError:
     nltk.download('punkt_tab', quiet=True)
 
-DISTANCE_THRESHOLD = 0.50
+DISTANCE_THRESHOLD = 0.45
 """
 Rationale:
     Based on "Transformer Models for Paraphrase Detection" (2025), which 
     identified optimal thresholds of 0.45-0.60 for distance-based semantic 
-    matching with BERT models on the MRPC dataset. The value 0.50 represents 
-    the mid-point
+    matching with BERT models on the MRPC dataset. Using the lower limit 
+    captures more relevant data points while keeping the relationship map intact.
+
 Reference:
     Paper Section: "Results + Discussion" 
     Specific finding: "Mid-range thresholds (around 0.4-0.6) show better balance"
@@ -54,7 +55,6 @@ def entity_ranking(article_description, entity_list):
     Args:
         article_description: Full article text
         top_entities: Top-ranked entity names from ranking
-        threshold: Max distance (default 0.50, range 0.45-0.60)
     
     Returns a list of dictionaries with name and score values (entities meeting distance threshold)              
     """
