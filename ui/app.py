@@ -6,7 +6,7 @@ from features.rss_handler import fetch_rss_articles
 from features.ranking_and_summarization import entity_ranking, generate_summary
 from features.relationship_mapping import mapping
 from bs4 import BeautifulSoup 
-from features.database import SessionLocal, Article, Summary, Account, Annotation
+from features.database import SessionLocal, Article, Summary, Account, Annotation, AnalysisResult
 
 # Global app state
 current_view = solara.reactive("login") 
@@ -119,67 +119,63 @@ def sync_user_to_db(email):
     finally:
         db.close()
 
-def save_to_azure(data_dict, user_notes):
-    if data_dict is None:
-        print("Save aborted: No article data selected.")
-        return
+import json
 
-    print(f"STARTING SAVE: {data_dict['title']}")
+def save_to_azure(data_dict, user_notes):
     db = SessionLocal()
     try:
         email = current_user.value['email']
-        
-        # Fetch the Account
         user_acc = db.query(Account).filter(Account.gmail == email).first()
         
-        # Check if this Article already exists
+        # Article Logic
         existing_article = db.query(Article).filter(Article.title == data_dict['title']).first()
-        
         if existing_article:
-            print(f"Updating existing article ID: {existing_article.articleid}")
             article_id = existing_article.articleid
-            existing_article.content = data_dict['original-text'] # Update content if changed
         else:
-            print("Creating brand new article entry...")
-            new_art = Article(title=data_dict['title'], content=data_dict['original-text'])
+            new_art = Article(
+                title=data_dict['title'], 
+                content=data_dict.get('original-text') or data_dict.get('content')
+            )
             db.add(new_art)
-            db.flush() # Send to Azure to generate the articleid
+            db.flush() 
             article_id = new_art.articleid
 
-        # Handle Summary (Overwrite if exists)
+        # Summary Logic
         existing_summary = db.query(Summary).filter(Summary.articleid == article_id).first()
         if existing_summary:
-            print("Overwriting existing summary...")
             existing_summary.summarytext = data_dict['summary']
         else:
-            print("Creating new summary record...")
-            new_sum = Summary(
-                articleid=article_id,
-                accountid=user_acc.accountid,
-                summarytext=data_dict['summary']
-            )
-            db.add(new_sum)
-
-        # Handle Annotations 
-        if user_notes.strip():
-            existing_note = db.query(Annotation).filter(
-                Annotation.articleid == article_id,
-                Annotation.accountid == user_acc.accountid
-            ).first()
-            
+            db.add(Summary(articleid=article_id, accountid=user_acc.accountid, summarytext=data_dict['summary']))
+        
+        # Note Logic
+        if user_notes:
+            existing_note = db.query(Annotation).filter(Annotation.articleid == article_id, Annotation.accountid == user_acc.accountid).first()
             if existing_note:
                 existing_note.note = user_notes
             else:
-                db.add(Annotation(
-                    articleid=article_id, 
-                    accountid=user_acc.accountid, 
-                    note=user_notes
-                ))
+                db.add(Annotation(articleid=article_id, accountid=user_acc.accountid, note=user_notes))
+        
+        rankings_list = data_dict.get('rankings', [])
+        # Extract just names for the bubbles section of the UI
+        all_entity_names = [e['name'] for e in rankings_list]
+        
+        existing_result = db.query(AnalysisResult).filter(AnalysisResult.articleid == article_id).first()
+        
+        if existing_result:
+            existing_result.rankings_json = json.dumps(rankings_list)
+            existing_result.entities_all_json = json.dumps(all_entity_names)
+            existing_result.graph_html = data_dict.get('graph', "")
+        else:
+            db.add(AnalysisResult(
+                articleid=article_id,
+                rankings_json=json.dumps(rankings_list),
+                entities_all_json=json.dumps(all_entity_names),
+                graph_html=data_dict.get('graph', "")
+            ))
 
         db.commit()
         save_status.set("success")
-        print("SUCCESS: Data synchronized")
-        
+
     except Exception as e:
         db.rollback()
         print(f"DATABASE ERROR: {e}")
