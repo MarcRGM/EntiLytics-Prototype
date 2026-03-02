@@ -1,5 +1,6 @@
 import solara
 import urllib.parse
+import json
 from features.auth_handler import get_google_login_url, exchange_code_for_user_info
 from features.simple_ner import identify_entities
 from features.rss_handler import fetch_rss_articles
@@ -119,8 +120,6 @@ def sync_user_to_db(email):
     finally:
         db.close()
 
-import json
-
 def save_to_azure(data_dict, user_notes):
     db = SessionLocal()
     try:
@@ -179,6 +178,18 @@ def save_to_azure(data_dict, user_notes):
     except Exception as e:
         db.rollback()
         print(f"DATABASE ERROR: {e}")
+    finally:
+        db.close()
+
+def get_saved_titles(email):
+    db = SessionLocal()
+    try:
+        user_acc = db.query(Account).filter(Account.gmail == email).first()
+        if not user_acc:
+            return []
+        # Get articles linked to this user's summaries
+        articles = db.query(Article).join(Summary).filter(Summary.accountid == user_acc.accountid).all()
+        return articles
     finally:
         db.close()
 
@@ -245,7 +256,23 @@ def DashboardScreen():
         with solara.Div(classes=["sidebar", sidebar_class]):
             with solara.Column(style={"background-color": "transparent", "padding": "10px"}):
                 solara.Text("Saved Articles", classes=["space-mono-medium"], style={"color": "white", "font-size": "1.2rem", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
-                solara.Text("> No articles yet", classes=["roboto-mono-medium"], style={"color": "white","font-size": "1rem", "opacity": "0.8"})
+                
+                # Fetch titles using current_user and refresh on save_status change
+                email_val = current_user.value['email'] if current_user.value else None
+                saved_list = solara.use_memo(lambda: get_saved_titles(email_val), [email_val, save_status.value])
+
+                if not saved_list:
+                    solara.Text("> No articles yet", classes=["roboto-mono-medium"], style={"color": "white","font-size": "1rem", "opacity": "0.8"})
+                else:
+                    with solara.Column(style={"gap": "5px"}):
+                        for art in saved_list:
+                            solara.Button(
+                                f"{art.title[:20]}...", 
+                                on_click=lambda a=art: get_saved_titles(a.articleid),
+                                text=True, 
+                                classes=["roboto-mono-medium"],
+                                style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0"}
+                            )
             
             # Logout logic
             def handle_logout():
