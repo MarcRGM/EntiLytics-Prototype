@@ -6,7 +6,7 @@ from features.rss_handler import fetch_rss_articles
 from features.ranking_and_summarization import entity_ranking, generate_summary
 from features.relationship_mapping import mapping
 from bs4 import BeautifulSoup 
-
+from features.database import SessionLocal, Article, Summary, Account, Annotation
 
 # Global app state
 current_view = solara.reactive("login") 
@@ -24,6 +24,7 @@ error_message = solara.reactive("")
 # UI state for results
 display_mode = solara.reactive("summary")  # "summary" or "original"
 notes_input = solara.reactive("")
+save_status = solara.reactive("")
 
 # Manual input fields
 news_title = solara.reactive("")
@@ -100,6 +101,91 @@ def handle_rss_fetch():
     
     fetch_articles(rss_link.value)
 
+def sync_user_to_db(email):
+    """Ensures the Google user exists in the Azure Account table."""
+    db = SessionLocal()
+    try:
+        user_acc = db.query(Account).filter(Account.gmail == email).first()
+        if not user_acc:
+            print(f"Registering new user in Azure: {email}")
+            user_acc = Account(gmail=email, account_role="user")
+            db.add(user_acc)
+            db.commit()
+        else:
+            print(f"User {email} already exists in database.")
+    except Exception as e:
+        print(f"Failed to sync user to database: {e}")
+        db.rollback()
+    finally:
+        db.close()
+
+def save_to_azure(data_dict, user_notes):
+    if data_dict is None:
+        print("Save aborted: No article data selected.")
+        return
+
+    print(f"STARTING SAVE: {data_dict['title']}")
+    db = SessionLocal()
+    try:
+        email = current_user.value['email']
+        
+        # Fetch the Account
+        user_acc = db.query(Account).filter(Account.gmail == email).first()
+        
+        # Check if this Article already exists
+        existing_article = db.query(Article).filter(Article.title == data_dict['title']).first()
+        
+        if existing_article:
+            print(f"Updating existing article ID: {existing_article.articleid}")
+            article_id = existing_article.articleid
+            existing_article.content = data_dict['original-text'] # Update content if changed
+        else:
+            print("Creating brand new article entry...")
+            new_art = Article(title=data_dict['title'], content=data_dict['original-text'])
+            db.add(new_art)
+            db.flush() # Send to Azure to generate the articleid
+            article_id = new_art.articleid
+
+        # Handle Summary (Overwrite if exists)
+        existing_summary = db.query(Summary).filter(Summary.articleid == article_id).first()
+        if existing_summary:
+            print("Overwriting existing summary...")
+            existing_summary.summarytext = data_dict['summary']
+        else:
+            print("Creating new summary record...")
+            new_sum = Summary(
+                articleid=article_id,
+                accountid=user_acc.accountid,
+                summarytext=data_dict['summary']
+            )
+            db.add(new_sum)
+
+        # Handle Annotations 
+        if user_notes.strip():
+            existing_note = db.query(Annotation).filter(
+                Annotation.articleid == article_id,
+                Annotation.accountid == user_acc.accountid
+            ).first()
+            
+            if existing_note:
+                existing_note.note = user_notes
+            else:
+                db.add(Annotation(
+                    articleid=article_id, 
+                    accountid=user_acc.accountid, 
+                    note=user_notes
+                ))
+
+        db.commit()
+        save_status.set("success")
+        print("SUCCESS: Data synchronized")
+        
+    except Exception as e:
+        db.rollback()
+        print(f"DATABASE ERROR: {e}")
+    finally:
+        db.close()
+
 # LOGIN SCREEN COMPONENT
 @solara.component
 def LoginScreen():
@@ -114,6 +200,7 @@ def LoginScreen():
         user_info = exchange_code_for_user_info(auth_code)
         if "error" not in user_info:
             current_user.set(user_info)
+            sync_user_to_db(user_info['email'])
             router.push("/") # clear code from URL
 
     # View when logged in
@@ -157,7 +244,6 @@ def LoginScreen():
 @solara.component
 def DashboardScreen():
     with solara.Div(classes=["dashboard-container"]):
-        
         # Left Sidebar 
         sidebar_class = "sidebar-open" if sidebar_open.value else "sidebar-closed"
         with solara.Div(classes=["sidebar", sidebar_class]):
@@ -284,7 +370,17 @@ def DashboardScreen():
                                         rows=5, 
                                         continuous_update=True
                                     )
-                                solara.Button("Save Analysis", classes=["push-button", "action-btn"], style={"width": "100%", "margin-top": "1rem", "font-size": "1rem"})
+                                solara.Button(
+                                    "Save Analysis", 
+                                    classes=["push-button", "action-btn"], 
+                                    style={"width": "100%", "margin-top": "1rem", "margin-bottom": "1rem", "font-size": "1rem"},
+                                    on_click=lambda: save_to_azure(selected_article_data.value, notes_input.value),
+                                )
+                                # Save status
+                                if save_status.value == "success":
+                                    solara.Success("Analysis successfully stored!", on_close=lambda: save_status.set(""))
+                                elif "error" in save_status.value:
+                                    solara.Error(f"Cloud Save Failed: {save_status.value}", on_close=lambda: save_status.set(""))
 
             # Input View (Manual or RSS)
             else:
