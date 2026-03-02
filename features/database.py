@@ -16,32 +16,33 @@ Base = declarative_base()
 
 # PYTHON MODELS
 class Account(Base):
-    __tablename__ = "account"  # PostgreSQL maps to lowercase by default
-    AccountID = Column(BigInteger, primary_key=True)
-    Gmail = Column(String(100), unique=True, nullable=False)
-    Account_Role = Column(String(255), default="user")
+    __tablename__ = "account"
+    # Match the lowercase names PostgreSQL uses internally
+    accountid = Column(BigInteger, primary_key=True) 
+    gmail = Column(String(100), unique=True, nullable=False)
+    account_role = Column(String(255), default="user")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Article(Base):
     __tablename__ = "article"
-    ArticleID = Column(BigInteger, primary_key=True)
-    Title = Column(Text)
-    Content = Column(Text)
+    articleid = Column(BigInteger, primary_key=True)
+    title = Column(Text)
+    content = Column(Text)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class Summary(Base):
     __tablename__ = "summary"
-    SummaryID = Column(BigInteger, primary_key=True)
-    AccountID = Column(BigInteger, ForeignKey("account.AccountID"))
-    ArticleID = Column(BigInteger, ForeignKey("article.ArticleID"))
-    SummaryText = Column(Text)
+    summaryid = Column(BigInteger, primary_key=True)
+    accountid = Column(BigInteger, ForeignKey("account.accountid"))
+    articleid = Column(BigInteger, ForeignKey("article.articleid"))
+    summarytext = Column(Text)
 
 class Annotation(Base):
     __tablename__ = "annotation"
-    AnnotationID = Column(BigInteger, primary_key=True)
-    AccountID = Column(BigInteger, ForeignKey("account.AccountID"))
-    ArticleID = Column(BigInteger, ForeignKey("article.ArticleID"))
-    Note = Column(Text)
+    annotationid = Column(BigInteger, primary_key=True)
+    accountid = Column(BigInteger, ForeignKey("account.accountid"))
+    articleid = Column(BigInteger, ForeignKey("article.articleid"))
+    note = Column(Text)
 
 # Schema initialization logic
 def init_db():
