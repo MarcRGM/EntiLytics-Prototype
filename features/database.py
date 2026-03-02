@@ -1,6 +1,7 @@
 import os
+import json
 from dotenv import load_dotenv
-from sqlalchemy import create_engine, text, Column, BigInteger, String, Text, ForeignKey, Float, DateTime
+from sqlalchemy import create_engine, text, Column, BigInteger, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
 from sqlalchemy.sql import func
 
@@ -14,22 +15,25 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 Base = declarative_base()
 
-# PYTHON MODELS
+# Python Models
+
+# User Management 
 class Account(Base):
     __tablename__ = "account"
-    # Match the lowercase names PostgreSQL uses internally
     accountid = Column(BigInteger, primary_key=True) 
     gmail = Column(String(100), unique=True, nullable=False)
     account_role = Column(String(255), default="user")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+# Content Storage 
 class Article(Base):
     __tablename__ = "article"
     articleid = Column(BigInteger, primary_key=True)
     title = Column(Text)
-    content = Column(Text)
+    content = Column(Text) # This stores 'original-text'
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+# NLP Analysis Results
 class Summary(Base):
     __tablename__ = "summary"
     summaryid = Column(BigInteger, primary_key=True)
@@ -37,6 +41,17 @@ class Summary(Base):
     articleid = Column(BigInteger, ForeignKey("article.articleid"))
     summarytext = Column(Text)
 
+class AnalysisResult(Base):
+    """Stores the Relationship Map and Ranked Entities"""
+    __tablename__ = "analysis_result"
+    resultid = Column(BigInteger, primary_key=True)
+    articleid = Column(BigInteger, ForeignKey("article.articleid"))
+    entities_all_json = Column(Text)
+    # rankings_json stores the list of dicts: [{'name': '...', 'distance': 0.1}, ...]
+    rankings_json = Column(Text) 
+    graph_html = Column(Text)
+
+# User Interactions
 class Annotation(Base):
     __tablename__ = "annotation"
     annotationid = Column(BigInteger, primary_key=True)
@@ -44,14 +59,12 @@ class Annotation(Base):
     articleid = Column(BigInteger, ForeignKey("article.articleid"))
     note = Column(Text)
 
-# Schema initialization logic
+# Initialization logic
 def init_db():
-    """Verify tables exist"""
-    # Ensure everything is synced
+    """Verify and sync tables with Azure"""
     try:
-        # This will create tables if they don't exist
         Base.metadata.create_all(bind=engine)
-        print("Database Models synced and verified with Azure Japan West.")
+        print("✅ Database Models synced with Azure")
     except Exception as e:
         print(f"Connection/Migration Error: {e}")
 
