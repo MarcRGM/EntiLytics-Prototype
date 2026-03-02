@@ -76,10 +76,10 @@ def mapping(article, entities):
     # Iterate through the NetworkX edges to build the Pyvis map
     for u, v, data in graph.edges(data=True): # True gives the custom attributes from graph
         # Wrap evidence text so it doesn't get cut off horizontally
-        # Break lines every 50 characters and replace newlines with HTML <br>
+        # Break lines every 10 characters and replace newlines with HTML <br>
         wrapped_evidence = []
         for s in data['evidence']:
-            wrapped_s = "<br>".join(textwrap.wrap(s, width=30))
+            wrapped_s = "<br>".join(textwrap.wrap(s, width=10))
             wrapped_evidence.append(wrapped_s)
 
         # title is an attribute Pyvis uses for the hover tooltip
