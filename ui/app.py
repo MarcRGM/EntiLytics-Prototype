@@ -174,6 +174,11 @@ def save_to_azure(data_dict, user_notes):
             ))
 
         db.commit()
+
+        new_data = {**selected_article_data.value} # Copy existing data
+        new_data["articleid"] = article_id # Add the ID 
+        selected_article_data.set(new_data) # Push update to UI
+
         save_status.set("success")
 
     except Exception as e:
@@ -197,6 +202,7 @@ def get_saved_titles(email):
 def display_historical_analysis(article_id):
     """Fetches saved NLP results and updates the UI state."""
     db = SessionLocal()
+    save_status.set("")
     try:
         # Retrieve data from all relevant tables
         article = db.query(Article).filter(Article.articleid == article_id).first()
@@ -207,6 +213,7 @@ def display_historical_analysis(article_id):
         if article and summary:
             # Reconstruct the dictionary format for the result view
             historical_dict = {
+                "articleid": article.articleid,
                 "title": article.title,
                 "original-text": article.content,
                 "summary": summary.summarytext,
@@ -222,9 +229,32 @@ def display_historical_analysis(article_id):
     finally:
         db.close()
 
-    current_user.set(None)
-    current_view.set("login")
-    show_logout_confirm.set(False)
+def delete_current_article():
+    if not selected_article_data.value or 'articleid' not in selected_article_data.value:
+        return
+
+    db = SessionLocal()
+    try:
+        article_id = selected_article_data.value['articleid']
+        
+        # These are the Tables that reference articleid
+        db.query(Annotation).filter(Annotation.articleid == article_id).delete()
+        db.query(Summary).filter(Summary.articleid == article_id).delete()
+        db.query(AnalysisResult).filter(AnalysisResult.articleid == article_id).delete()
+        
+        db.flush()
+        db.query(Article).filter(Article.articleid == article_id).delete()
+        db.commit()
+        
+        # Force Sidebar refresh and clear view
+        save_status.set("deleted-{article_id}") 
+        selected_article_data.set(None)
+        
+    except Exception as e:
+        db.rollback()
+        print(f"DELETE ERROR: {e}")
+    finally:
+        db.close()
 
 # LOGIN SCREEN COMPONENT
 @solara.component
@@ -241,7 +271,9 @@ def LoginScreen():
         if "error" not in user_info:
             current_user.set(user_info)
             sync_user_to_db(user_info['email'])
-            router.push("/") # clear code from URL
+            router.push("/")
+
+        
 
     # View when logged in
     if current_user.value is not None:
@@ -287,7 +319,7 @@ def DashboardScreen():
         # Left Sidebar 
         sidebar_class = "sidebar-open" if sidebar_open.value else "sidebar-closed"
         with solara.Div(classes=["sidebar", sidebar_class]):
-            with solara.Column(style={"background-color": "transparent", "padding": "10px", "height": "100%"}):
+            with solara.Column(style={"background-color": "transparent", "padding": "10px", "padding-bottom": "30px", "height": "100vh", "width": "100%", "display": "flex", "flex-direction": "column"}):
                 solara.Text("Saved Articles", classes=["roboto-mono-medium"], style={"color": "white", "font-size": "1.2rem", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
                 
                 # Fetch titles using current_user and refresh on save_status change
@@ -307,37 +339,37 @@ def DashboardScreen():
                                 style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%"}
                             )
             
-            # Logout logic
-            def handle_logout():
-                current_user.set(None)
-                current_view.set("login")
-                show_logout_confirm.set(False)
+                # Logout logic
+                def handle_logout():
+                    current_user.set(None)
+                    current_view.set("login")
+                    show_logout_confirm.set(False)
 
-            with solara.Column(style={"margin-top": "auto", "padding": "10px", "background-color": "transparent"}):
-                if not show_logout_confirm.value:
-                    solara.Button(
-                        "Log out", 
-                        text=True, 
-                        classes=["roboto-mono-medium"], 
-                        style={"color": "white", "justify-content": "flex-start", "font-size": "1rem"}, 
-                        on_click=lambda: show_logout_confirm.set(True)
-                    )
-                else:
-                    with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
-                        solara.Text("Are you sure?", classes=["roboto-mono-medium"], style={"color": "white", "font-family": "'Roboto Mono', monospace"})
+                with solara.Column(style={"margin-top": "auto", "padding": "10px", "background-color": "transparent"}):
+                    if not show_logout_confirm.value:
                         solara.Button(
-                            "Yes", 
-                            on_click=handle_logout, 
-                            classes=["push-button", "logout-btn"],
-                            style={"background-color": "#d9534f", "color": "white", "padding": "2px 10px"}
+                            "Log out", 
+                            text=True, 
+                            classes=["roboto-mono-medium"], 
+                            style={"color": "white", "justify-content": "flex-start", "font-size": "1rem"}, 
+                            on_click=lambda: show_logout_confirm.set(True)
                         )
-                        solara.Button(
-                            "No", 
-                            on_click=lambda: show_logout_confirm.set(False), 
-                            text=True,
-                            classes=["push-button", "toggle-btn"],
-                            style={"color": "white"}
-                        )
+                    else:
+                        with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
+                            solara.Text("Are you sure?", classes=["roboto-mono-medium"], style={"color": "white", "font-family": "'Roboto Mono', monospace"})
+                            solara.Button(
+                                "Yes", 
+                                on_click=handle_logout, 
+                                classes=["push-button", "red-btn"],
+                                style={"background-color": "#d9534f", "color": "white", "padding": "2px 10px"}
+                            )
+                            solara.Button(
+                                "No", 
+                                on_click=lambda: show_logout_confirm.set(False), 
+                                text=True,
+                                classes=["push-button", "toggle-btn"],
+                                style={"color": "white"}
+                            )
 
         # Right Workspace
         with solara.Div(classes=["workspace"], style={"position": "relative"}):
@@ -453,13 +485,23 @@ def DashboardScreen():
                                     )
                                 solara.Button(
                                     "Save Analysis", 
-                                    classes=["push-button", "action-btn"], 
+                                    classes=["push-button", "action-btn", "roboto-mono-regular"], 
                                     style={"width": "100%", "margin-top": "1rem", "margin-bottom": "1rem", "font-size": "1rem"},
                                     on_click=lambda: save_to_azure(selected_article_data.value, notes_input.value),
                                 )
+                                with solara.Column():
+                                    # Only show if article is stored 
+                                    if selected_article_data.value and "articleid" in selected_article_data.value:
+                                        with solara.Row(justify="end"):
+                                            solara.Button(
+                                                icon_name="delete",
+                                                on_click=delete_current_article,
+                                                classes=["push-button", "red-btn", "roboto-mono-regular"],
+                                                 style={"font-size": "1rem", "margin-bottom": "1rem"},
+                                            )
                                 # Save status
                                 if save_status.value == "success":
-                                    solara.Success("Analysis successfully stored!", on_close=lambda: save_status.set(""))
+                                    solara.Success("Analysis Saved", on_close=lambda: save_status.set(""))
                                 elif "error" in save_status.value:
                                     solara.Error(f"Cloud Save Failed: {save_status.value}", on_close=lambda: save_status.set(""))
 
@@ -585,7 +627,7 @@ def Page():
         .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #113F67 !important; border: 1px solid #113F67 !important; }
         .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; border: 1px solid #DDDDDD !important; }
         
-        .logout-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
+        .red-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
 
         .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .menu-btn:hover { color: #578FCA !important; }
