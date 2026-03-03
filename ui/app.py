@@ -12,6 +12,7 @@ from features.database import SessionLocal, Article, Summary, Account, Annotatio
 # Global app state
 current_view = solara.reactive("login") 
 current_user = solara.reactive(None)
+show_logout_confirm = solara.reactive(False)
 
 # Dashboard state
 input_mode = solara.reactive("manual") 
@@ -193,6 +194,38 @@ def get_saved_titles(email):
     finally:
         db.close()
 
+def display_historical_analysis(article_id):
+    """Fetches saved NLP results and updates the UI state."""
+    db = SessionLocal()
+    try:
+        # Retrieve data from all relevant tables
+        article = db.query(Article).filter(Article.articleid == article_id).first()
+        summary = db.query(Summary).filter(Summary.articleid == article_id).first()
+        result = db.query(AnalysisResult).filter(AnalysisResult.articleid == article_id).first()
+        note = db.query(Annotation).filter(Annotation.articleid == article_id).first()
+
+        if article and summary:
+            # Reconstruct the dictionary format for the result view
+            historical_dict = {
+                "title": article.title,
+                "original-text": article.content,
+                "summary": summary.summarytext,
+                # Graph HTML and Rankings must be parsed from JSON strings
+                "graph": result.graph_html if result else "",
+                "rankings": json.loads(result.rankings_json) if result and result.rankings_json else []
+            }
+            
+            # Update Solara state variables to trigger the Result View automatically
+            selected_article_data.set(historical_dict)
+            notes_input.set(note.note if note else "")
+            
+    finally:
+        db.close()
+
+    current_user.set(None)
+    current_view.set("login")
+    show_logout_confirm.set(False)
+
 # LOGIN SCREEN COMPONENT
 @solara.component
 def LoginScreen():
@@ -254,8 +287,8 @@ def DashboardScreen():
         # Left Sidebar 
         sidebar_class = "sidebar-open" if sidebar_open.value else "sidebar-closed"
         with solara.Div(classes=["sidebar", sidebar_class]):
-            with solara.Column(style={"background-color": "transparent", "padding": "10px"}):
-                solara.Text("Saved Articles", classes=["space-mono-medium"], style={"color": "white", "font-size": "1.2rem", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
+            with solara.Column(style={"background-color": "transparent", "padding": "10px", "height": "100%"}):
+                solara.Text("Saved Articles", classes=["roboto-mono-medium"], style={"color": "white", "font-size": "1.2rem", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
                 
                 # Fetch titles using current_user and refresh on save_status change
                 email_val = current_user.value['email'] if current_user.value else None
@@ -264,22 +297,47 @@ def DashboardScreen():
                 if not saved_list:
                     solara.Text("> No articles yet", classes=["roboto-mono-medium"], style={"color": "white","font-size": "1rem", "opacity": "0.8"})
                 else:
-                    with solara.Column(style={"gap": "5px"}):
-                        for art in saved_list:
+                    with solara.Column(style={"gap": "5px", "background-color": "transparent", "overflow-y": "auto", "flex-grow": "1"}):
+                        for article in saved_list:
                             solara.Button(
-                                f"{art.title[:20]}...", 
-                                on_click=lambda a=art: get_saved_titles(a.articleid),
+                                f"{article.title[:20]}...", 
+                                on_click=lambda a=article: display_historical_analysis(a.articleid),
                                 text=True, 
                                 classes=["roboto-mono-medium"],
-                                style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0"}
+                                style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%"}
                             )
             
             # Logout logic
             def handle_logout():
                 current_user.set(None)
                 current_view.set("login")
+                show_logout_confirm.set(False)
 
-            solara.Button("Log out", text=True, classes=["roboto-mono-medium"], style={"color": "white", "justify-content": "flex-start", "font-size": "1rem"}, on_click=handle_logout)
+            with solara.Column(style={"margin-top": "auto", "padding": "10px", "background-color": "transparent"}):
+                if not show_logout_confirm.value:
+                    solara.Button(
+                        "Log out", 
+                        text=True, 
+                        classes=["roboto-mono-medium"], 
+                        style={"color": "white", "justify-content": "flex-start", "font-size": "1rem"}, 
+                        on_click=lambda: show_logout_confirm.set(True)
+                    )
+                else:
+                    with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
+                        solara.Text("Are you sure?", classes=["roboto-mono-medium"], style={"color": "white", "font-family": "'Roboto Mono', monospace"})
+                        solara.Button(
+                            "Yes", 
+                            on_click=handle_logout, 
+                            classes=["push-button", "logout-btn"],
+                            style={"background-color": "#d9534f", "color": "white", "padding": "2px 10px"}
+                        )
+                        solara.Button(
+                            "No", 
+                            on_click=lambda: show_logout_confirm.set(False), 
+                            text=True,
+                            classes=["push-button", "toggle-btn"],
+                            style={"color": "white"}
+                        )
 
         # Right Workspace
         with solara.Div(classes=["workspace"], style={"position": "relative"}):
@@ -325,7 +383,7 @@ def DashboardScreen():
                     
                     # Header Row 
                     with solara.Row(justify="space-between", style={"padding": "10px", "align-items": "center"}):
-                        solara.Button("← Back to List", on_click=lambda: selected_article_data.set(None), text=True, classes=["roboto-mono-medium"])
+                        solara.Button("← Back", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium"])
                         with solara.Div(classes=["segmented-control"]):
                             with solara.ToggleButtonsSingle(value=display_mode, mandatory=True):
                                 solara.Button("Summary", value="summary")
@@ -504,6 +562,20 @@ def Page():
         .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; }
         .sidebar-open { width: 25%; padding: 20px 20px; }
         .sidebar-closed { width: 0%; padding: 0px; }
+        .sidebar ::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .sidebar ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }         
+
         .workspace { width: 75%; height: 100vh; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
         .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         
@@ -513,6 +585,8 @@ def Page():
         .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #113F67 !important; border: 1px solid #113F67 !important; }
         .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; border: 1px solid #DDDDDD !important; }
         
+        .logout-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
+
         .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .menu-btn:hover { color: #578FCA !important; }
                  
