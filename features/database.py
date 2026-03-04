@@ -1,5 +1,6 @@
 import os
-import json
+import uuid
+from datetime import datetime
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text, Column, BigInteger, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -64,7 +65,7 @@ def init_db():
     """Verify and sync tables with Azure"""
     try:
         Base.metadata.create_all(bind=engine)
-        print("✅ Database Models synced with Azure")
+        print("Database Models synced with Azure")
     except Exception as e:
         print(f"Connection/Migration Error: {e}")
 
