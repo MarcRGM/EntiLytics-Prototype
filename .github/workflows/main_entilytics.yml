@@ -30,7 +30,11 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_FF9F413B4A314FCB8C5600998F07EBAD }}
 
       - name: Log in to ACR
-        run: az acr login --name ${{ secrets.ACR_NAME }}
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.ACR_NAME }}.azurecr.io
+          username: ${{ secrets.ACR_USERNAME }}
+          password: ${{ secrets.ACR_PASSWORD }}
 
       - name: Build and push container image to ACR
         uses: docker/build-push-action@v3
@@ -60,6 +64,7 @@ jobs:
         with:
           app-name: 'entilytics'
           images: '${{ secrets.ACR_NAME }}.azurecr.io/entilytics-app:${{ github.sha }}'
+
 
 
 
