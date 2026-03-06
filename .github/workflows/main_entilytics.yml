@@ -32,7 +32,7 @@ jobs:
         uses: docker/build-push-action@v3
         with:
           context: .
-          push: true
+          push: false
           tags: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712696B134DF4F1CBE3A99B1D09A3D6F }}/appsvc/staticsite:${{ github.sha }}
           file: ./Dockerfile
 
@@ -55,10 +55,11 @@ jobs:
 
       - name: Deploy to Azure Web App
         id: deploy-to-webapp
-        uses: azure/webapps-deploy@v2
+        uses: azure/webapps-deploy@v3
         with:
           app-name: 'entilytics'
           slot-name: 'Production'
-          images: '{{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712696B134DF4F1CBE3A99B1D09A3D6F }}/appsvc/staticsite:${{ github.sha }}'
+          images: 'entilytics-app:${{ github.sha }}'
 
           
+
