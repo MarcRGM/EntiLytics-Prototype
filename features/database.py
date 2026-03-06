@@ -26,6 +26,15 @@ class Account(Base):
     account_role = Column(String(255), default="user")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+    session_id = Column(String, primary_key=True, default=lambda: str(uuid.uuid4()))
+    gmail = Column(String, ForeignKey("account.gmail"), nullable=False)
+    name = Column(String,   nullable=False)
+    picture = Column(String,   nullable=True)
+    expires_at = Column(DateTime, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
 # Content Storage 
 class Article(Base):
     __tablename__ = "article"
