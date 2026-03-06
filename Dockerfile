@@ -16,8 +16,7 @@ RUN curl -fsSL https://packages.microsoft.com/config/debian/12/prod.list | tee /
 # Install the drivers
 RUN apt-get update && \
     ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev && \
-    apt-get clean
-
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
@@ -26,6 +25,9 @@ ENV PYTHONPATH="/app"
 
 # Copy everything
 COPY . /app
+
+# Install torch CPU-only first (saves ~1GB vs default CUDA build)
+RUN pip install --no-cache-dir torch==2.9.1 --index-url https://download.pytorch.org/whl/cpu
 
 # Install requirements
 RUN pip install --no-cache-dir -r requirements.txt
