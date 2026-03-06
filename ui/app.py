@@ -1,17 +1,22 @@
 import solara
 import urllib.parse
 import json
+import uuid
 from features.auth_handler import get_google_login_url, exchange_code_for_user_info
 from features.simple_ner import identify_entities
 from features.rss_handler import fetch_rss_articles
 from features.ranking_and_summarization import entity_ranking, generate_summary
 from features.relationship_mapping import mapping
 from bs4 import BeautifulSoup 
-from features.database import SessionLocal, Article, Summary, Account, Annotation, AnalysisResult
+from features.database import SessionLocal, Article, Summary, Account, Annotation, AnalysisResult, UserSession
+from datetime import datetime, timedelta
+
+COOKIE_NAME = "entil_session"
 
 # Global app state
 current_view = solara.reactive("login") 
 current_user = solara.reactive(None)
+current_session_id   = solara.reactive(None)
 show_logout_confirm = solara.reactive(False)
 
 # Dashboard state
@@ -256,70 +261,212 @@ def delete_current_article():
     finally:
         db.close()
 
+def display_help_button():
+    # Help Button 
+    solara.Button(icon_name="mdi-help-circle-outline", classes=["help-btn"], on_click=lambda: show_help_modal.set(True))
+
+    # Pop-Up Modal
+    if show_help_modal.value:
+        with solara.Div(classes=["modal-overlay"]):
+            with solara.Div(classes=["modal-content"]):
+                solara.Text("About EntiLytics", classes=["space-mono-bold"], style={"font-size": "1.75rem", "color": "#1C6EA4", "border-bottom": "2px solid #FADA7A", "padding-bottom": "10px"})
+                
+                solara.Text("EntiLytics is a web-based news information management system that helps users understand English online news articles by automatically extracting entities, ranking their importance, mapping relationships, and generating entity‑focused extractive summaries using a pretrained BiLSTM NER model and a transformer-based ranking module.", classes=["roboto-mono-regular"], style={"color": "#444", "line-height": "1.6", "font-size": "1rem"})
+                
+                solara.Text("Terms of Use", classes=["space-mono-bold"], style={"font-size": "1.25rem", "color": "#578FCA", "margin-top": "10px"})
+                solara.Text("By using this workspace, you agree that data processed on this platform is for academic and analytical purposes. User sessions are authenticated securely via Google OAuth 2.0.", classes=["roboto-mono-regular"], style={"color": "#666", "font-size": "0.875rem", "line-height": "1.5"})
+                
+                # Close Button
+                with solara.Row(justify="flex-end", style={"margin-top": "20px"}):
+                    solara.Button("Close", classes=["push-button", "action-btn", "roboto-mono-medium"], on_click=lambda: show_help_modal.set(False))
+
+def resolve_session(sid):
+    print(f"--- RESOLVING SESSION ---")
+    print(f"Received SID from browser: {sid}")
+    
+    db = SessionLocal()
+    try:
+        session = db.query(UserSession).filter(UserSession.session_id == sid).first()
+        if session:
+            print(f"Match found in DB for: {session.gmail}")
+            if datetime.utcnow() < session.expires_at:
+                print("Session is VALID.")
+                return {
+                    "email": session.gmail,
+                    "name": session.name,
+                    "picture": session.picture
+                }
+            else:
+                print("Session EXPIRED.")
+        else:
+            print("No matching session found in Azure.")
+    except Exception as e:
+        print(f"DB Error during resolve: {e}")
+    finally:
+        db.close()
+    return None
+
+def create_session(user_info):
+    db = SessionLocal()
+    try:
+        sid = str(uuid.uuid4())
+        print(f"--- ATTEMPTING SESSION CREATE ---")
+        print(f"User: {user_info.get('email')}")
+        print(f"Generated SID: {sid}")
+
+        new_session = UserSession(
+            session_id=sid,
+            gmail=user_info["email"],
+            name=user_info.get("name", "User"),
+            picture=user_info.get("picture", ""),
+            expires_at=datetime.utcnow() + timedelta(days=7)
+        )
+        
+        db.add(new_session)
+        db.commit()
+        print(f"SUCCESS: Session stored in Azure DB.")
+        return sid
+    except Exception as e:
+        db.rollback()
+        print(f"CRITICAL ERROR creating session: {e}")
+        return None
+    finally:
+        db.close()
+
+@solara.component
+def SessionRestorer():
+    bridged_sid, set_bridged_sid = solara.use_state("")
+
+    # Use a raw script tag inside HTML to ensure it runs in the browser immediately
+    solara.HTML(tag="script", unsafe_innerHTML="""
+        (function() {
+            function getCookie(name) {
+                let v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
+                return v ? v[2] : null;
+            }
+            
+            let attempts = 0;
+            const checkExist = setInterval(function() {
+                const el = document.querySelector("#sid_bridge input");
+                attempts++;
+                if (el) {
+                    const sid = getCookie("entil_sid");
+                    el.value = sid ? sid : "NO_COOKIE";
+                    // This triggers the Python on_value
+                    el.dispatchEvent(new Event('input', { bubbles: true }));
+                    clearInterval(checkExist);
+                } else if (attempts > 50) { // Stop after 5 seconds
+                    clearInterval(checkExist);
+                }
+            }, 100); 
+        })();
+    """)
+
+    # Put the bridge in a container but keep it hidden
+    with solara.Column(style={"display": "none"}):
+        solara.InputText(
+            label="bridge", 
+            value=bridged_sid, 
+            on_value=set_bridged_sid,
+            attributes={"id": "sid_bridge"}
+        )
+
+    def recover():
+        if not bridged_sid:
+            return 
+
+        print(f"--- BRIDGE HANDSHAKE: Received '{bridged_sid}' ---")
+
+        if bridged_sid == "NO_COOKIE":
+            print("No cookie found in browser.")
+            is_checking_session.set(False)
+        else:
+            # THIS IS WHERE YOUR PRINT STARTS
+            user_info = resolve_session(bridged_sid) 
+            if user_info:
+                current_user.set(user_info)
+                current_session_id.set(bridged_sid)
+                print(f"User {user_info['email']} restored successfully.")
+            is_checking_session.set(False)
+
+    solara.use_effect(recover, [bridged_sid])
+    return solara.Div(style={"display": "none"})
+
 # LOGIN SCREEN COMPONENT
 @solara.component
 def LoginScreen():
     router = solara.use_router()
-    raw_search = router.search or ""
-    query_params = urllib.parse.parse_qs(raw_search)
-    auth_code_list = query_params.get("code")
-    auth_code = auth_code_list[0] if auth_code_list else None
+    query_params = urllib.parse.parse_qs(router.search or "")
+    auth_code = query_params.get("code", [None])[0]
 
-    # OAUTH LOGIC
-    if auth_code and current_user.value is None:
-        user_info = exchange_code_for_user_info(auth_code)
-        if "error" not in user_info:
-            current_user.set(user_info)
-            sync_user_to_db(user_info['email'])
+    def handle_oauth():
+        # If we have a code but we are already logged in (via Restorer), ignore it!
+        if current_user.value is not None and auth_code:
             router.push("/")
+            return
 
-        
+        if auth_code and current_user.value is None:
+            user_info = exchange_code_for_user_info(auth_code)
+            
+            if user_info and "error" in user_info:
+                print("Bad code detected. Cleaning URL via redirect...")
+                # HARD REDIRECT to wipe the ?code=
+                solara.HTML(tag="script", unsafe_innerHTML="window.location.href = window.location.origin + window.location.pathname;")
+                return
 
+            if user_info and "error" not in user_info:
+                sid = create_session(user_info)
+                if sid:
+                    current_user.set(user_info)
+                    # Write cookie AND clean URL
+                    solara.HTML(tag="script", unsafe_innerHTML=f"""
+                        document.cookie = 'entil_sid={sid}; max-age=604800; path=/; SameSite=Lax';
+                        window.location.href = '/';
+                    """)
+
+    solara.use_effect(handle_oauth, [auth_code])
+    
     # View when logged in
     if current_user.value is not None:
-        return solara.Column(
-            align="center",
-            style={"min-height": "100vh", "justify-content": "center", "background-color": "#FADA7A"},
-            children=[
-                solara.Text(f"Welcome, {current_user.value['name']}!", style={"font-size": "32px", "font-weight": "bold", "color": "#1C6EA4", "font-family": "'Space Mono', monospace"}),
-                solara.Text(f"Email: {current_user.value['email']}", style={"color": "#666", "font-family": "'Roboto Mono', monospace"}),
-                
-                # Trigger dashboard
-                solara.Button(
-                    "Go to Dashboard", 
-                    classes=["push-button", "roboto-mono-medium"],
-                    style={"margin-top": "20px", "background-color": "#1C6EA4", "color": "white", "box-shadow": "0px 6px 0px 0px #134B70"}, 
-                    on_click=lambda: current_view.set("dashboard")
-                ) 
-            ]
-        )
+        current_view.set("dashboard")
 
     # View when logged out
-    with solara.Column(style={"min-height": "100vh", "display": "flex", "justify-content": "center", "align-items": "center", "background-color": "#FADA7A"}):
-        with solara.Div(style={"width": "30%", "min-width": "300px", "height": "auto", "background-color": "#FADA7A", "display": "flex", "flex-direction": "column", "align-items": "center", "gap": "30px"}):
-            solara.HTML(unsafe_innerHTML="""
-                <div style="text-align: center;">
-                    <span class='space-mono-bold' style="color:#1C6EA4; font-size:72px;">Enti</span><span class='space-mono-bold' style="color:#578FCA; font-size:72px;">Lytics</span>
-                    <p class='roboto-mono-medium' style="color: #666; margin-top: -10px; font-size: 18px;">News Information Management System</p>
-                </div>
-            """)
-            solara.Button(label="Continue with Google", icon_name="mdi-google", href=get_google_login_url(), classes=["push-button", "google-auth"])
-            solara.HTML(unsafe_innerHTML="""
-                <div class='roboto-mono-regular' style="text-align: center; color: #777; font-size: 12px; margin-top: 10px;">
-                    By continuing, you agree to EntiLytics' terms. <br>
-                    Secure passwordless authentication powered by Google OAuth 2.0.
-                </div>
-            """)
+    else:
+        with solara.Column(style={"min-height": "100vh", "display": "flex", "justify-content": "center", "align-items": "center", "background-color": "#FADA7A"}):
+            with solara.Div(style={"width": "30%", "min-width": "300px", "height": "auto", "background-color": "#FADA7A", "display": "flex", "flex-direction": "column", "align-items": "center", "gap": "30px"}):
+                display_help_button()
+                solara.HTML(unsafe_innerHTML="""
+                    <div style="text-align: center;">
+                        <span class='space-mono-bold' style="color:#1C6EA4; font-size:72px;">Enti</span><span class='space-mono-bold' style="color:#578FCA; font-size:72px;">Lytics</span>
+                        <p class='roboto-mono-medium' style="color: #666; margin-top: -10px; font-size: 18px;">News Information Management System</p>
+                    </div>
+                """)
+                solara.Button(label="Continue with Google", icon_name="mdi-google", href=get_google_login_url(), classes=["push-button", "google-auth"])
+                solara.HTML(unsafe_innerHTML="""
+                    <div class='roboto-mono-regular' style="text-align: center; color: #777; font-size: 12px; margin-top: 10px;">
+                        By continuing, you agree to EntiLytics' terms. 
+                    </div>
+                """)
 
 
 # DASHBOARD SCREEN COMPONENT
 @solara.component
 def DashboardScreen():
+    router = solara.use_router()
     with solara.Div(classes=["dashboard-container"]):
         # Left Sidebar 
         sidebar_class = "sidebar-open" if sidebar_open.value else "sidebar-closed"
         with solara.Div(classes=["sidebar", sidebar_class]):
             with solara.Column(style={"background-color": "transparent", "padding": "10px", "padding-bottom": "30px", "height": "100vh", "width": "100%", "display": "flex", "flex-direction": "column"}):
+                with solara.Row(justify="end", style={"width": "100%", "background-color": "#113F67"}):
+                    solara.Button(
+                        icon_name="mdi-close", 
+                        on_click=lambda: sidebar_open.set(False),
+                        classes=["mobile-close-btn"], # We will style this in CSS
+                        text=True,
+                        style={"color": "white", "font-size": "1.5rem", "background-color": "transparent"}
+                    )
+                
                 solara.Text("Saved Articles", classes=["roboto-mono-medium"], style={"color": "white", "font-size": "1.2rem", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
                 
                 # Fetch titles using current_user and refresh on save_status change
@@ -332,18 +479,35 @@ def DashboardScreen():
                     with solara.Column(style={"gap": "5px", "background-color": "transparent", "overflow-y": "auto", "flex-grow": "1"}):
                         for article in saved_list:
                             solara.Button(
-                                f"{article.title[:20]}...", 
+                                f"{article.title}", 
                                 on_click=lambda a=article: display_historical_analysis(a.articleid),
                                 text=True, 
-                                classes=["roboto-mono-medium"],
-                                style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%"}
+                                classes=["roboto-mono-medium", "article-btn-text"],
+                                style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%", "overflow": "hidden"}
                             )
-            
+                
                 # Logout logic
-                def handle_logout():
+                def handle_logout():    
+                    if current_session_id.value:
+                        db = SessionLocal()
+                        try:
+                            db.query(UserSession).filter(UserSession.session_id == current_session_id.value).delete()
+                            db.commit()
+                        finally:
+                            db.close()
+
+                    
+                    # Wipe Python App State
                     current_user.set(None)
+                    current_session_id.set(None)
+                    selected_article_data.set(None)
+                    
+                    # Redirect to the login screen
                     current_view.set("login")
                     show_logout_confirm.set(False)
+                    
+                    # Force a clean URL
+                    router.push("/")
 
                 with solara.Column(style={"margin-top": "auto", "padding": "10px", "background-color": "transparent"}):
                     if not show_logout_confirm.value:
@@ -376,23 +540,7 @@ def DashboardScreen():
             # Hamburger Menu
             solara.Button(icon_name="mdi-menu", classes=["menu-btn"], on_click=lambda: sidebar_open.set(not sidebar_open.value))
 
-            # Help Button 
-            solara.Button(icon_name="mdi-help-circle-outline", classes=["help-btn"], on_click=lambda: show_help_modal.set(True))
-
-            # Pop-Up Modal
-            if show_help_modal.value:
-                with solara.Div(classes=["modal-overlay"]):
-                    with solara.Div(classes=["modal-content"]):
-                        solara.Text("About EntiLytics", classes=["space-mono-bold"], style={"font-size": "28px", "color": "#1C6EA4", "border-bottom": "2px solid #FADA7A", "padding-bottom": "10px"})
-                        
-                        solara.Text("EntiLytics is a web-based news information management system that helps users understand English online news articles by automatically extracting entities, ranking their importance, mapping relationships, and generating entity‑focused extractive summaries using a pretrained BiLSTM NER model and a transformer-based ranking module.", classes=["roboto-mono-regular"], style={"color": "#444", "line-height": "1.6"})
-                        
-                        solara.Text("Terms of Use", classes=["space-mono-bold"], style={"font-size": "20px", "color": "#578FCA", "margin-top": "10px"})
-                        solara.Text("By using this workspace, you agree that data processed on this platform is for academic and analytical purposes. User sessions are authenticated securely via Google OAuth 2.0.", classes=["roboto-mono-regular"], style={"color": "#666", "font-size": "14px", "line-height": "1.5"})
-                        
-                        # Close Button
-                        with solara.Row(justify="flex-end", style={"margin-top": "20px"}):
-                            solara.Button("Close", classes=["push-button", "action-btn", "roboto-mono-medium"], on_click=lambda: show_help_modal.set(False))
+            display_help_button()
 
             # Header
             solara.HTML(unsafe_innerHTML="""
@@ -584,6 +732,7 @@ def DashboardScreen():
                                     disabled=end >= len(rss_feed_results.value), 
                                     on_click=lambda: current_page.set(current_page.value + 1))
 
+is_checking_session = solara.reactive(True)
 
 # MASTER PAGE (INJECTS CSS ONCE)
 @solara.component
@@ -601,22 +750,13 @@ def Page():
         @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
 
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
-        .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; }
+        .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; z-index: 1000;}
         .sidebar-open { width: 25%; padding: 20px 20px; }
         .sidebar-closed { width: 0%; padding: 0px; }
-        .sidebar ::-webkit-scrollbar {
-            width: 5px;
-        }
-        .sidebar ::-webkit-scrollbar-track {
-            background: transparent;
-        }
-        .sidebar ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 10px;
-        }
-        .sidebar ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.4);
-        }         
+        .sidebar ::-webkit-scrollbar { width: 5px; }
+        .sidebar ::-webkit-scrollbar-track { background: transparent; }
+        .sidebar ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
+        .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }         
 
         .workspace { width: 75%; height: 100vh; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
         .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
@@ -629,34 +769,24 @@ def Page():
         
         .red-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
 
-        .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
+        .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .menu-btn:hover { color: #578FCA !important; }
                  
-        .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 24px !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
+        .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .help-btn:hover { color: #578FCA !important; }
-                 
+
+        /* Saved articles */
+        .article-btn-text { white-space: nowrap; overflow: hidden !important; }
+        .article-btn-text .v-btn__content { width: 100%; display: block !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; text-align: left !important; }
+        
+        .mobile-close-btn { display: none !important; }   
+                       
         /* Toggle Button */
-        .segmented-control .v-btn-toggle {
-            background-color: #f0f0f0 !important;
-            border-radius: 12px !important;
-            padding: 4px !important;
-            border: none !important;
-        }
+        .segmented-control .v-btn-toggle { background-color: #f0f0f0 !important; border-radius: 12px !important; padding: 4px !important; border: none !important; }
 
-        .segmented-control .v-btn {
-            border-radius: 12px !important;
-            text-transform: none !important;
-            font-family: 'Roboto Mono', monospace !important;
-            letter-spacing: 0 !important;
-            border: none !important;
-            color: #666 !important;
-        }
+        .segmented-control .v-btn { border-radius: 12px !important; text-transform: none !important; font-family: 'Roboto Mono', monospace !important; letter-spacing: 0 !important; border: none !important; color: #666 !important; }
 
-        .segmented-control .v-btn--active {
-            background-color: #3674B5 !important;
-            color: white !important;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important;
-        }
+        .segmented-control .v-btn--active { background-color: #3674B5 !important; color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; }
                  
         /* Custom Modal CSS */
         .modal-overlay { position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */}
@@ -667,10 +797,44 @@ def Page():
         .analyze-btn { opacity: 0; transition: opacity 0.2s; }
         .rss-item-row:hover .analyze-btn { opacity: 1; }
                  
+        /* MOBILE BEHAVIOR */
+        @media (max-width: 600px) {
+            .mobile-close-btn {
+                display: block !important;
+                margin-bottom: 10px;
+            }
+                 
+            .sidebar {
+                position: fixed; 
+                top: 0;
+                left: 0;
+                height: 100vh;
+                width: 100vw;
+                background-color: #113F67; 
+                z-index: 2000;
+            }
+            
+            .sidebar-closed {
+                transform: translateX(-100vw); 
+            }
+            
+            .sidebar-open {
+                transform: translateX(0); 
+            }
+            
+            .workspace {
+                width: 100vw;
+            }
+        }
+                 
     """)
 
-    # Traffic Controller
-    if current_view.value == "login":
+    SessionRestorer()
+    
+    print(f"DEBUG: checking={is_checking_session.value}, user={'LOGGED_IN' if current_user.value else 'NONE'}")
+    
+    # TRAFFIC CONTROLLER WITH LOADING GATE
+    if current_user.value is None:
         LoginScreen()
-    elif current_view.value == "dashboard":
+    else:
         DashboardScreen()
