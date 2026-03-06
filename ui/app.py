@@ -415,9 +415,11 @@ def LoginScreen():
                 return
 
             if user_info and "error" not in user_info:
+                sync_user_to_db(user_info['email'])
                 sid = create_session(user_info)
                 if sid:
                     current_user.set(user_info)
+                    current_view.set("dashboard")
                     # Write cookie AND clean URL
                     solara.HTML(tag="script", unsafe_innerHTML=f"""
                         document.cookie = 'entil_sid={sid}; max-age=604800; path=/; SameSite=Lax';
