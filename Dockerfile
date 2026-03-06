@@ -21,6 +21,9 @@ RUN apt-get update && \
 
 WORKDIR /app
 
+# SET THE PYTHON PATH
+ENV PYTHONPATH="/app"
+
 # Copy everything
 COPY . /app
 
