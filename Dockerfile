@@ -1,17 +1,22 @@
 FROM python:3.11-slim
 
 # Install prerequisites 
-# Add Microsoft's GPG key to the modern keyring
-# Add the Microsoft repo for Debian 12 
-# Install the ODBC driver
 RUN apt-get update && apt-get install -y \
-    curl gnupg2 \
-    && mkdir -p /etc/apt/sources.list.d \
-    && curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - \
-    && curl https://packages.microsoft.com/config/debian/11/prod.list > /etc/apt/sources.list.d/mssql-release.list \
-    && apt-get update \
-    && ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev \
-    && apt-get clean
+    curl \
+    gnupg2 \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+# Add Microsoft's key to the modern keyring 
+RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg
+
+# Add the repo for Debian 12 
+RUN curl -fsSL https://packages.microsoft.com/config/debian/12/prod.list | tee /etc/apt/sources.list.d/mssql-release.list
+
+# Install the drivers
+RUN apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18 unixodbc-dev && \
+    apt-get clean
 
 
 WORKDIR /app
