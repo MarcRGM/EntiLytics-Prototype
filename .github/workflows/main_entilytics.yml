@@ -24,7 +24,7 @@ jobs:
       - name: Log in to container registry
         uses: docker/login-action@v2
         with:
-          registry: mcr.microsoft.com/
+          registry: index.docker.io
           username: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712696B134DF4F1CBE3A99B1D09A3D6F }}
           password: ${{ secrets.AZUREAPPSERVICE_CONTAINERPASSWORD_8D909D5579634C5E98BC9341578513AA }}
 
@@ -33,7 +33,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: mcr.microsoft.com/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712696B134DF4F1CBE3A99B1D09A3D6F }}/appsvc/staticsite:${{ github.sha }}
+          tags: ${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712696B134DF4F1CBE3A99B1D09A3D6F }}/appsvc/staticsite:${{ github.sha }}
           file: ./Dockerfile
 
   deploy:
@@ -59,5 +59,6 @@ jobs:
         with:
           app-name: 'entilytics'
           slot-name: 'Production'
-          images: 'mcr.microsoft.com/${{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712696B134DF4F1CBE3A99B1D09A3D6F }}/appsvc/staticsite:${{ github.sha }}'
+          images: '{{ secrets.AZUREAPPSERVICE_CONTAINERUSERNAME_712696B134DF4F1CBE3A99B1D09A3D6F }}/appsvc/staticsite:${{ github.sha }}'
+
           
