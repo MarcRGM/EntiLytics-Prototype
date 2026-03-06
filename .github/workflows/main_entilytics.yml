@@ -52,7 +52,7 @@ jobs:
           path: /tmp
 
       - name: Load Docker image
-        run: docker load <= /tmp/entilytics-app.tar
+        run: docker load < /tmp/entilytics-app.tar
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -68,5 +68,6 @@ jobs:
           images: 'entilytics-app:${{ github.sha }}'
 
           
+
 
 
