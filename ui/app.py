@@ -674,7 +674,7 @@ def DashboardScreen():
                         if input_mode.value == "manual":
                             # Run NLP analysis
                             solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium"], 
-                                          on_click=lambda: handle_manual_analysis())
+                                          on_click=lambda: [handle_manual_analysis(), news_title.set(""), news_description.set("")])
                             
                             solara.Button("Switch to RSS", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
                                         on_click=lambda: [
@@ -683,7 +683,9 @@ def DashboardScreen():
                                             rss_feed_results.set([]), 
                                             selected_article_data.set(None), 
                                             error_message.set(""),
-                                            input_mode.set("rss")
+                                            input_mode.set("rss"),
+                                            news_title.set(""), 
+                                            news_description.set("")
                                         ])
                         
                         else:
@@ -740,13 +742,15 @@ is_checking_session = solara.reactive(True)
 @solara.component
 def Page():
     solara.Title("Entilytics")
-    with solara.Head():
-        solara.HTML(tag="link", attributes={
-            "rel": "icon", 
-            "type": "image/png", 
-            "href": "static/entilytics_icon.png"
-        })
-
+    with solara.Div(style={"display": "none"}):
+        solara.HTML(tag="script", unsafe_innerHTML="""
+            document.querySelectorAll("link[rel*='icon']").forEach(el => el.remove());
+            var link = document.createElement('link');
+            link.rel = 'icon';
+            link.type = 'image/png';
+            link.href = 'data:image/png;base64,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';
+            document.head.appendChild(link);
+        """)
     solara.Style("""
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap');
@@ -806,6 +810,9 @@ def Page():
         .rss-item-row { transition: background-color 0.2s; border-radius: 12px; margin-bottom: 5px; } .rss-item-row:hover { background-color: rgba(28, 110, 164, 0.1) !important; }
         .analyze-btn { opacity: 0; transition: opacity 0.2s; }
         .rss-item-row:hover .analyze-btn { opacity: 1; }
+                 
+        /* Remove solara footer*/
+        div[style*="bottom: 0px"][style*="position: absolute"] { display: none !important; }
                  
         /* MOBILE BEHAVIOR */
         @media (max-width: 600px) {
