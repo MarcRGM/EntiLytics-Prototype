@@ -739,6 +739,14 @@ is_checking_session = solara.reactive(True)
 # MASTER PAGE (INJECTS CSS ONCE)
 @solara.component
 def Page():
+    solara.Title("Entilytics")
+    with solara.Head():
+        solara.HTML(tag="link", attributes={
+            "rel": "icon", 
+            "type": "image/png", 
+            "href": "static/entilytics_icon.png"
+        })
+
     solara.Style("""
         @import url('https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap');
         @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@300;400;500&display=swap');
