@@ -3,9 +3,9 @@ import urllib.parse
 import json
 import uuid
 from features.auth_handler import get_google_login_url, exchange_code_for_user_info
-from features.simple_ner import identify_entities
+from features.flair_ner import identify_entities
 from features.rss_handler import fetch_rss_articles
-from features.ranking_and_summarization import entity_ranking, generate_summary
+from features.entity_ranking_and_summarization import entity_ranking, generate_summary
 from features.relationship_mapping import mapping
 from bs4 import BeautifulSoup 
 from features.database import SessionLocal, Article, Summary, Account, Annotation, AnalysisResult, UserSession
