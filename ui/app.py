@@ -458,7 +458,10 @@ def LoginScreen():
                 sid = create_session(user_info)
                 if sid:
                     current_user.set(user_info)
-                    current_view.set("dashboard")
+                    if current_role.value == "admin":
+                        current_view.set("admin") 
+                    else:
+                        current_view.set("dashboard")
                     # Write cookie AND clean URL
                     solara.HTML(tag="script", unsafe_innerHTML=f"""
                         document.cookie = 'entil_sid={sid}; max-age=604800; path=/; SameSite=Lax';
@@ -786,11 +789,13 @@ def AdminPage():
         "search_input": {"margin-bottom": "20px", "width": "100%"}
     }
 
+    # Reactive states
     users, set_users = solara.use_state([])
-    search_term = solara.use_reactive("") # New reactive state for searching
+    search_term = solara.use_reactive("") 
     refresh_counter = solara.use_reactive(0)
     selected_user_id = solara.use_reactive(None)
     delete_confirm_id = solara.use_reactive(None)
+    show_logout_confirm = solara.use_reactive(False)
 
     def load_users():
         db = SessionLocal()
@@ -822,7 +827,29 @@ def AdminPage():
         # Header Section
         with solara.Row(justify="space-between", style={"background-color": "transparent", "align-items": "center", "margin-bottom": "30px"}):
             solara.Text("EntiLytics Admin Console", classes=["space-mono-bold"], style={"font-size": "2.5rem", "color": "#3674B5"})
-            solara.Button("Logout", on_click=handle_logout, classes=["push-button", "red-btn", "roboto-mono-regular"])
+            with solara.Row(style={"gap": "15px", "align-items": "center", "background-color": "transparent"}):
+                # Navigation Button
+                solara.Button("View Dashboard", on_click=lambda: current_view.set("dashboard"), classes=["push-button", "toggle-btn", "roboto-mono-regular"])
+                
+                # Logout Logic
+                if not show_logout_confirm.value:
+                    solara.Button("Logout", on_click=lambda: show_logout_confirm.set(True), classes=["push-button", "red-btn", "roboto-mono-regular"])
+                else:
+                    with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
+                        solara.Text("Are you sure?", classes=["roboto-mono-medium"], style={"color": "#3674B5", "font-family": "'Roboto Mono', monospace"})
+                        solara.Button(
+                            "Yes", 
+                            on_click=handle_logout, 
+                            classes=["push-button", "red-btn"],
+                            style={"background-color": "#d9534f", "color": "white", "padding": "2px 10px"}
+                        )
+                        solara.Button(
+                            "No", 
+                            on_click=lambda: show_logout_confirm.set(False), 
+                            text=True,
+                            classes=["push-button", "toggle-btn"],
+                            style={"color": "#3674B5"}
+                        )
 
         # Main Management Container
         with solara.Div(style=s["main_card"]):
@@ -997,6 +1024,10 @@ def Page():
     else:
         # Redirect based on role
         if current_role.value == "admin":
-            AdminPage()
+            # If admin has clicked 'View Dashboard', show dashboard; else show Admin Console
+            if current_view.value == "dashboard":
+                DashboardScreen()
+            else:
+                AdminPage()
         else:
             DashboardScreen()
