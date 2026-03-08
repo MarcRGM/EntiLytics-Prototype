@@ -37,6 +37,7 @@ error_message = solara.reactive("")
 display_mode = solara.reactive("summary")  # "summary" or "original"
 notes_input = solara.reactive("")
 save_status = solara.reactive("")
+sidebar_search = solara.reactive("")
 
 # Manual input fields
 news_title = solara.reactive("")
@@ -513,15 +514,38 @@ def DashboardScreen():
                 
                 solara.Text("Saved Articles", classes=["roboto-mono-medium"], style={"color": "white", "font-size": "1.2rem", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
                 
+                # Search Bar
+                with solara.Div(style={"background-color": "transparent"}):
+                    solara.InputText(
+                        label="Search articles...", 
+                        value=sidebar_search, 
+                        continuous_update=True,
+                        classes=["roboto-mono-regular"],
+                        style={
+                            "background-color": "white", 
+                            "border-radius": "4px",
+                            "padding": "15px",
+                            "color": "white"
+                        }
+                    )
+
                 # Fetch titles using current_user and refresh on save_status change
                 email_val = current_user.value['email'] if current_user.value else None
                 saved_list = solara.use_memo(lambda: get_saved_titles(email_val), [email_val, save_status.value])
 
+                # Filter the list based on the search term
+                filtered_list = [
+                    article for article in saved_list 
+                    if sidebar_search.value.lower() in article.title.lower()
+                ] if saved_list else []
+
                 if not saved_list:
                     solara.Text("> No articles yet", classes=["roboto-mono-medium"], style={"color": "white","font-size": "1rem", "opacity": "0.8"})
+                elif not filtered_list:
+                    solara.Text("No matches found", classes=["roboto-mono-medium"], style={"color": "white","font-size": "0.9rem", "padding": "10px"})
                 else:
                     with solara.Column(style={"gap": "5px", "background-color": "transparent", "overflow-y": "auto", "flex-grow": "1"}):
-                        for article in saved_list:
+                        for article in filtered_list:
                             solara.Button(
                                 f"{article.title}", 
                                 on_click=lambda a=article: display_historical_analysis(a.articleid),
@@ -939,7 +963,7 @@ def Page():
         .sidebar ::-webkit-scrollbar-track { background: transparent; }
         .sidebar ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
         .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }         
-
+        
         .workspace { width: 75%; height: 100vh; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
         .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
         
