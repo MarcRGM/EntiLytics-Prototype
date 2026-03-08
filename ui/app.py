@@ -772,7 +772,6 @@ def DashboardScreen():
                                     on_click=lambda: current_page.set(current_page.value + 1))
                         
 @solara.component
-@solara.component
 def AdminPage():
     # Centralized Style Dictionary
     s = {
