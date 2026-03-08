@@ -30,13 +30,12 @@ try:
     # Run evaluation
     result = tagger.evaluate(corpus.test, gold_label_type='ner')
 
-    print("\n" + "="*45)
+    print("\n")
     print(f"CONLL-2003 BASELINE RESULTS")
-    print("="*45)
+    print("")
     print(f"Overall F1-Score: {result.main_score:.4f}")
-    print("-" * 45)
+    print("")
     print(result.detailed_results)
-    print("="*45)
 
 except AssertionError:
     print("Error: Could not find .txt files. Ensure they are in the same folder as this script.")
