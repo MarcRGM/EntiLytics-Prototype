@@ -16,6 +16,7 @@ COOKIE_NAME = "entil_session"
 # Global app state
 current_view = solara.reactive("login") 
 current_user = solara.reactive(None)
+current_role = solara.reactive("user")
 current_session_id   = solara.reactive(None)
 show_logout_confirm = solara.reactive(False)
 
@@ -120,6 +121,7 @@ def sync_user_to_db(email):
             db.commit()
         else:
             print(f"User {email} already exists in database.")
+        current_role.set(user_acc.account_role)
     except Exception as e:
         print(f"Failed to sync user to database: {e}")
         db.rollback()
@@ -330,6 +332,39 @@ def create_session(user_info):
         db.rollback()
         print(f"CRITICAL ERROR creating session: {e}")
         return None
+    finally:
+        db.close()
+
+# Admin functions
+def delete_user_from_db(account_id, gmail):
+    db = SessionLocal()
+    try:
+        # Don't delete if it's an admin account
+        user = db.query(Account).filter(Account.accountid == account_id).first()
+        if user and user.account_role == "admin":
+            return False
+
+        # Delete dependent data in order
+        db.query(Annotation).filter(Annotation.accountid == account_id).delete()
+        db.query(Summary).filter(Summary.accountid == account_id).delete()
+        db.query(UserSession).filter(UserSession.gmail == gmail).delete()
+        db.query(Account).filter(Account.accountid == account_id).delete()
+        
+        db.commit()
+        return True
+    except Exception as e:
+        db.rollback()
+        print(f"Error deleting user: {e}")
+        return False
+    finally:
+        db.close()
+
+def get_user_activity(account_id):
+    db = SessionLocal()
+    try:
+        # Fetch articles that have summaries created by this specific user
+        articles = db.query(Article).join(Summary).filter(Summary.accountid == account_id).all()
+        return [a.title for a in articles]
     finally:
         db.close()
 
@@ -735,6 +770,109 @@ def DashboardScreen():
                                     classes=["push-button", "toggle-btn", "roboto-mono-regular"],
                                     disabled=end >= len(rss_feed_results.value), 
                                     on_click=lambda: current_page.set(current_page.value + 1))
+                        
+@solara.component
+@solara.component
+def AdminPage():
+    # Centralized Style Dictionary
+    s = {
+        "page_container": {"padding": "40px", "background-color": "#FADA7A", "min-height": "100vh"},
+        "main_card": {"background": "white", "padding": "25px", "border-radius": "15px", "box-shadow": "0 4px 6px rgba(0,0,0,0.1)"},
+        "activity_box": {"margin": "10px 0 0 20px", "padding": "15px", "background": "#fdfdfd", "border-left": "4px solid #FADA7A"},
+        "user_row": {"border-bottom": "1px solid #EEE", "padding": "15px 0"},
+        "search_input": {"margin-bottom": "20px", "width": "100%"}
+    }
+
+    users, set_users = solara.use_state([])
+    search_term = solara.use_reactive("") # New reactive state for searching
+    refresh_counter = solara.use_reactive(0)
+    selected_user_id = solara.use_reactive(None)
+    delete_confirm_id = solara.use_reactive(None)
+
+    def load_users():
+        db = SessionLocal()
+        try:
+            set_users(db.query(Account).all())
+        finally:
+            db.close()
+
+    solara.use_effect(load_users, [refresh_counter.value])
+
+    # Filtered user list based on search term
+    filtered_users = [
+        u for u in users 
+        if search_term.value.lower() in u.gmail.lower()
+    ]
+
+    def handle_delete(uid, email):
+        if delete_user_from_db(uid, email):
+            refresh_counter.value += 1
+            delete_confirm_id.set(None)
+
+    def handle_logout():
+        current_user.set(None)
+        current_role.set("user")
+        solara.HTML(tag="script", unsafe_innerHTML="document.cookie = 'entil_sid=; max-age=0; path=/;'; window.location.href = '/';")
+
+    # UI LAYOUT
+    with solara.Column(style=s["page_container"]):
+        # Header Section
+        with solara.Row(justify="space-between", style={"background-color": "transparent", "align-items": "center", "margin-bottom": "30px"}):
+            solara.Text("EntiLytics Admin Console", classes=["space-mono-bold"], style={"font-size": "2.5rem", "color": "#3674B5"})
+            solara.Button("Logout", on_click=handle_logout, classes=["push-button", "red-btn", "roboto-mono-regular"])
+
+        # Main Management Container
+        with solara.Div(style=s["main_card"]):
+            solara.Text("User Management & Activity Audit", classes=["roboto-mono-medium"], style={"font-size": "1.2rem", "margin-bottom": "15px", "display": "block"})
+            
+            # Search Bar Component
+            solara.InputText(
+                label="Search by Gmail...", 
+                value=search_term, 
+                continuous_update=True,
+                classes=["roboto-mono-regular"],
+                style=s["search_input"]
+            )
+
+            if not users:
+                solara.ProgressLinear(color="#3674B5")
+            
+            # Display filtered results
+            for users in filtered_users:
+                is_admin = users.account_role == "admin"
+                is_pending = delete_confirm_id.value == users.accountid
+                
+                with solara.Column(style=s["user_row"]):
+                    with solara.Row(style={"align-items": "center"}):
+                        solara.Text(users.gmail, classes=["roboto-mono-regular"], style={"width": "35%", "font-weight": "bold" if is_admin else "normal"})
+                        solara.Text(users.account_role.upper(), classes=["roboto-mono-regular"], style={"width": "15%", "color": "#3674B5" if is_admin else "#666", "font-size": "0.8rem"})
+                        
+                        solara.Button("View Activity", 
+                                      on_click=lambda uid=users.accountid: selected_user_id.set(uid if selected_user_id.value != uid else None), 
+                                      text=True, classes=["roboto-mono-regular"], style={"color": "#3674B5"})
+                        
+                        solara.Div(style={"flex-grow": "1"})
+                        
+                        if not is_pending:
+                            solara.Button(icon_name="mdi-delete", 
+                                          on_click=lambda uid=users.accountid: delete_confirm_id.set(uid),
+                                          disabled=is_admin,
+                                          classes=["push-button", "red-btn"] if not is_admin else [],
+                                          style={"color": "white" if not is_admin else "#ccc"})
+                        else:
+                            with solara.Row(style={"gap": "10px"}):
+                                solara.Button("Confirm?", on_click=lambda uid=users.accountid, email=users.gmail: handle_delete(uid, email), classes=["push-button", "red-btn", "roboto-mono-regular"])
+                                solara.Button("Cancel", on_click=lambda: delete_confirm_id.set(None), text=True, classes=["roboto-mono-regular"])
+
+                    if selected_user_id.value == users.accountid:
+                        titles = get_user_activity(users.accountid)
+                        with solara.Column(style=s["activity_box"]):
+                            if not titles:
+                                solara.Text("No historical activity found.", classes=["roboto-mono-regular"], style={"font-style": "italic", "color": "#999"})
+                            else:
+                                solara.Text("Analyzed Article Titles:", classes=["roboto-mono-bold"], style={"font-size": "0.95rem", "margin-bottom": "5px"})
+                                for title in titles:
+                                    solara.Text(f"• {title}", classes=["roboto-mono-regular"], style={"font-size": "0.85rem", "margin-bottom": "3px"})
 
 is_checking_session = solara.reactive(True)
 
@@ -854,4 +992,8 @@ def Page():
     if current_user.value is None:
         LoginScreen()
     else:
-        DashboardScreen()
+        # Redirect based on role
+        if current_role.value == "admin":
+            AdminPage()
+        else:
+            DashboardScreen()
