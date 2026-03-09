@@ -42,6 +42,8 @@ Given a news article, the system will:
 ---
 
 ## Project Structure
+> [!NOTE}
+> Folder structure is not final and may change during development.
 
 ```
 entilytics/
