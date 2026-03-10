@@ -90,7 +90,7 @@ REDIRECT_URI=http://localhost:8080/
 
 ```bash
 # Clone the repository
-git clone https://github.com/<your-username>/entilytics.git
+git clone https://github.com/MarcRGM/entilytics.git
 cd entilytics
 
 # Create and activate a virtual environment
