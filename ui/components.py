@@ -178,12 +178,12 @@ def DashboardScreen():
                     solara.Button(
                         icon_name="mdi-close", 
                         on_click=lambda: sidebar_open.set(False),
-                        classes=["mobile-close-btn"], # We will style this in CSS
+                        classes=["mobile-close-btn"],
                         text=True,
                         style={"color": "white", "font-size": "1.5rem", "background-color": "transparent"}
                     )
                 
-                solara.Text("Saved Articles", classes=["roboto-mono-medium"], style={"color": "white", "font-size": "1.2rem", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
+                solara.Text("Saved Articles", classes=["roboto-mono-medium", "sidebar-title"], style={"color": "white", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
                 
                 # Search Bar
                 with solara.Div(style={"background-color": "transparent"}):
@@ -211,9 +211,9 @@ def DashboardScreen():
                 ] if saved_list else []
 
                 if not saved_list:
-                    solara.Text("> No articles yet", classes=["roboto-mono-medium"], style={"color": "white","font-size": "1rem", "opacity": "0.8"})
+                    solara.Text("> No articles yet", classes=["roboto-mono-medium", "sidebar-info"], style={"color": "white", "opacity": "0.8"})
                 elif not filtered_list:
-                    solara.Text("No matches found", classes=["roboto-mono-medium"], style={"color": "white","font-size": "0.9rem", "padding": "10px"})
+                    solara.Text("No matches found", classes=["roboto-mono-medium", "sidebar-info"], style={"color": "white", "padding": "10px"})
                 else:
                     with solara.Column(style={"gap": "5px", "background-color": "transparent", "overflow-y": "auto", "flex-grow": "1"}):
                         for article in filtered_list:
@@ -252,26 +252,27 @@ def DashboardScreen():
                         solara.Button(
                             "Log out", 
                             text=True, 
-                            classes=["roboto-mono-medium"], 
-                            style={"color": "white", "justify-content": "flex-start", "font-size": "1rem"}, 
+                            classes=["roboto-mono-medium", "sidebar-logout"], 
+                            style={"color": "white", "justify-content": "flex-start"}, 
                             on_click=lambda: show_logout_confirm.set(True)
                         )
                     else:
-                        with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
-                            solara.Text("Are you sure?", classes=["roboto-mono-medium"], style={"color": "white", "font-family": "'Roboto Mono', monospace"})
-                            solara.Button(
-                                "Yes", 
-                                on_click=handle_logout, 
-                                classes=["push-button", "red-btn"],
-                                style={"background-color": "#d9534f", "color": "white", "padding": "2px 10px"}
-                            )
-                            solara.Button(
-                                "No", 
-                                on_click=lambda: show_logout_confirm.set(False), 
-                                text=True,
-                                classes=["push-button", "toggle-btn"],
-                                style={"color": "white"}
-                            )
+                        with solara.Div(classes=["logout-confirm-container"]):
+                            solara.Text("Are you sure?", classes=["roboto-mono-medium", "sidebar-logout"], style={"color": "white", "font-family": "'Roboto Mono', monospace"})
+                            with solara.Row(style={"gap": "10px", "background-color": "transparent", "padding": "0"}):
+                                solara.Button(
+                                    "Yes", 
+                                    on_click=handle_logout, 
+                                    classes=["push-button", "red-btn", "sidebar-logout", "sidebar-logout-pad"],
+                                    style={"background-color": "#d9534f", "color": "white"}
+                                )
+                                solara.Button(
+                                    "No", 
+                                    on_click=lambda: show_logout_confirm.set(False), 
+                                    text=True,
+                                    classes=["push-button", "toggle-btn", "sidebar-logout", "sidebar-logout-pad"],
+                                    style={"color": "white"}
+                                )
 
         # Right Workspace
         with solara.Div(classes=["workspace"], style={"position": "relative"}):
@@ -283,8 +284,8 @@ def DashboardScreen():
             # Header
             solara.HTML(unsafe_innerHTML="""
                 <div style="text-align: center; width: 100%; margin-bottom: 20px;">
-                    <span class='space-mono-bold' style="color:#1C6EA4; font-size:48px;">Enti</span><span class='space-mono-bold' style="color:#578FCA; font-size:48px;">Lytics</span>
-                    <p class='roboto-mono-medium' style="color: #666; margin-top: -10px; font-size: 18px;">Workspace</p>
+                    <span class='space-mono-bold workspace-title' style="color:#1C6EA4;">Enti</span><span class='space-mono-bold workspace-title' style="color:#578FCA;">Lytics</span>
+                    <p class='roboto-mono-medium workspace-subtitle' style="color: #666; margin-top: -10px;">Workspace</p>
                 </div>
             """)
 
@@ -399,20 +400,20 @@ def DashboardScreen():
                         solara.Error(error_message.value)
 
                     if input_mode.value == "manual":
-                        solara.InputText("News Title", value=news_title)
-                        solara.InputText("Description (Article Content)", value=news_description)
+                        solara.InputText("News Title", value=news_title, style={"width": "100%"})
+                        solara.InputText("Description (Article Content)", value=news_description, style={"width": "100%"})
                     else:
                         # RSS Input field
-                        solara.InputText("Paste RSS Feed URL", value=rss_link)
+                        solara.InputText("Paste RSS Feed URL", value=rss_link, style={"width": "100%"})
 
                     # Action Buttons Row
-                    with solara.Row(justify="center", style={"margin-top": "30px", "gap": "20px", "background-color": "transparent"}):
+                    with solara.Row(classes=["form-action-row"], style={"background-color": "transparent", "justify-content": "center"}):
                         if input_mode.value == "manual":
                             # Run NLP analysis
-                            solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium"], 
+                            solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium", "form-btn-text"], 
                                           on_click=lambda: [handle_manual_analysis(), news_title.set(""), news_description.set("")])
                             
-                            solara.Button("Switch to RSS", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
+                            solara.Button("Switch to RSS", classes=["push-button", "toggle-btn", "roboto-mono-medium", "form-btn-text"], 
                                         on_click=lambda: [
                                             news_title.set(""),
                                             news_description.set(""),
@@ -426,10 +427,10 @@ def DashboardScreen():
                         
                         else:
                             # Fetches the RSS list metadata
-                            solara.Button("Fetch Articles", classes=["push-button", "action-btn", "roboto-mono-medium"], 
+                            solara.Button("Fetch Articles", classes=["push-button", "action-btn", "roboto-mono-medium", "form-btn-text"], 
                                           on_click=lambda: handle_rss_fetch())
                             
-                            solara.Button("Switch to Manual Input", classes=["push-button", "toggle-btn", "roboto-mono-medium"], 
+                            solara.Button("Switch to Manual Input", classes=["push-button", "toggle-btn", "roboto-mono-medium", "form-btn-text"], 
                                         on_click=lambda: [
                                             rss_link.set(""),
                                             rss_feed_results.set([]), 

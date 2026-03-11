@@ -29,6 +29,14 @@ def Page():
         .roboto-mono-light { font-family: "Roboto Mono", monospace; font-weight: 300; }
         .roboto-mono-regular { font-family: "Roboto Mono", monospace; font-weight: 400; }
         .roboto-mono-medium { font-family: "Roboto Mono", monospace; font-weight: 500; }
+        
+        .push-button { border: none !important; border-radius: 8px !important; padding: 10px 20px !important; transition: none !important; text-transform: none !important; cursor: pointer; position: relative; top: 0; }
+        .push-button:active { transform: translateY(6px) !important; box-shadow: none !important; } 
+        
+        .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #113F67 !important; border: 1px solid #113F67 !important; }
+        .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; border: 1px solid #DDDDDD !important; }
+        
+        .red-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
 
         @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
                  
@@ -44,18 +52,28 @@ def Page():
         .sidebar ::-webkit-scrollbar { width: 5px; }
         .sidebar ::-webkit-scrollbar-track { background: transparent; }
         .sidebar ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
-        .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }         
+        .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }   
         
         .workspace { width: 75%; height: 100vh; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
-        .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; }
+        .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; padding: 10px; }
         
-        .push-button { border: none !important; border-radius: 8px !important; padding: 10px 20px !important; transition: none !important; text-transform: none !important; cursor: pointer; position: relative; top: 0; }
-        .push-button:active { transform: translateY(6px) !important; box-shadow: none !important; } 
+        .workspace-title {
+            font-size: clamp(2rem, 4vw + 1rem, 3rem) !important; /* Scales from 32px to 48px */
+        }
         
-        .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #113F67 !important; border: 1px solid #113F67 !important; }
-        .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; border: 1px solid #DDDDDD !important; }
-        
-        .red-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
+        .workspace-subtitle {
+            font-size: clamp(0.875rem, 2vw + 0.5rem, 1.125rem) !important; /* Scales from 14px to 18px */
+        }
+                 
+        .form-action-row {
+            margin-top: clamp(1.25rem, 3vw, 1.875rem) !important;
+            gap: clamp(0.625rem, 2vw, 1.25rem) !important;
+            flex-wrap: wrap;
+        }
+
+        .form-btn-text {
+            font-size: clamp(0.75rem, 2vw + 0.4rem, 1rem) !important;
+        }
 
         .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .menu-btn:hover { color: #578FCA !important; }
@@ -64,9 +82,32 @@ def Page():
         .help-btn:hover { color: #578FCA !important; }
 
         /* Saved articles */
-        .article-btn-text { white-space: nowrap; overflow: hidden !important; }
+        .article-btn-text { white-space: nowrap; overflow: hidden !important; font-size: clamp(0.75rem, 0.56vw + 0.54rem, 0.9rem) !important; }
         .article-btn-text .v-btn__content { width: 100%; display: block !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; text-align: left !important; }
         
+        /* Responsive Sidebar Text using clamp() */
+        .sidebar-title { 
+            font-size: clamp(1rem, 0.75vw + 0.72rem, 1.2rem) !important; 
+        }
+        .sidebar-info { 
+            font-size: clamp(0.75rem, 0.47vw + 0.7rem, 1rem) !important; 
+        }
+        .sidebar-logout { 
+            font-size: clamp(0.875rem, 0.47vw + 0.7rem, 1rem) !important; 
+        }    
+                 
+        .sidebar-logout-pad {
+            padding: clamp(0.1rem, 0.2vw + 0.05rem, 0.15rem) clamp(0.4rem, 0.5vw + 0.3rem, 0.625rem) !important;
+        }
+                 
+        .logout-confirm-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            background-color: transparent;
+        }
+
         /* Hidden on desktop, shown on mobile */
         .mobile-close-btn { display: none !important; }   
                        
@@ -87,8 +128,15 @@ def Page():
         /* Remove solara footer*/
         div[style*="bottom: 0px"][style*="position: absolute"] { display: none !important; }
         
+        /* TABLET BEHAVIOR */
         @media (max-width: 1024px) { 
-
+            .sidebar-open { width: 35%; }
+            
+            /* Adjust workspace to take up the remaining space */
+            .workspace { width: 65%; padding: 30px 40px; }
+            
+            /* Make the form container wider to fit the smaller workspace */
+            .form-container { width: 80%; min-width: unset; }
         }
         
         /* MOBILE BEHAVIOR */
