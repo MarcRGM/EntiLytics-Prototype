@@ -79,8 +79,9 @@ def mapping(article, entities):
         # Break lines every 10 characters and replace newlines with HTML <br>
         wrapped_evidence = []
         for s in data['evidence']:
-            wrapped_s = "<br>".join(textwrap.wrap(s, width=10))
-            wrapped_evidence.append(wrapped_s)
+            words = s.split()
+            chunks = [" ".join(words[i:i+10]) for i in range(0, len(words), 10)]
+            wrapped_evidence.append("\n".join(chunks))
 
         # title is an attribute Pyvis uses for the hover tooltip
         hover_text = "Found in:\n" + "\n".join(data['evidence'])
@@ -93,6 +94,65 @@ def mapping(article, entities):
 
     # Generate the html string
     html_string = net.generate_html() 
+
+    modal_html = """
+    <div id="customModal" style="display:none; position:fixed; z-index:9999; left:0; top:0; width:100%; height:100%; background-color:rgba(0,0,0,0.7); font-family: 'Roboto Mono', monospace; backdrop-filter: blur(2px);">
+      <div style="background-color:white; margin:8% auto; padding:30px; border-radius:2px; width:65%; max-height:75%; overflow-y:auto; position:relative; box-shadow: 0 20px 40px rgba(0,0,0,0.4); border-left: 5px solid #1C6EA4;">
+        <span id="closeModal" style="position:absolute; right:25px; top:15px; cursor:pointer; font-size:30px; color:#1C6EA4; font-weight:bold;">&times;</span>
+        
+        <h3 id="modalTitle" style="color:#1C6EA4; border-bottom:1px solid #eee; padding-bottom:15px; margin-top:0; font-size: 1.4rem; letter-spacing: -0.5px;">Details</h3>
+        
+        <div id="modalContentWrapper" style="padding: 10px 0;">
+            <pre id="modalContent" style="
+                white-space: pre-wrap; 
+                word-wrap: break-word; 
+                font-size: 14px; 
+                line-height: 1.8; 
+                color: #333; 
+                text-align: justify; 
+                margin: 0;
+                font-family: 'Roboto Mono', monospace;
+            "></pre>
+        </div>
+      </div>
+    </div>
+
+    <script type="text/javascript">
+      network.on("click", function (params) {
+        if (params.nodes.length > 0 || params.edges.length > 0) {
+          var content = "";
+          var title = "";
+          
+          if (params.nodes.length > 0) {
+            var nodeData = nodes.get(params.nodes[0]);
+            title = "Entity: " + nodeData.label;
+            content = "Detailed analysis for this entity is stored in the relationship connections. Click on the lines between nodes to see specific evidence.";
+          } else if (params.edges.length > 0) {
+            var edgeData = edges.get(params.edges[0]);
+            var connection = nodes.get(edgeData.from).label + " & " + nodes.get(edgeData.to).label;
+            title = "Relationship: " + connection;
+            content = edgeData.title; 
+          }
+          
+          document.getElementById('modalTitle').innerText = title;
+          document.getElementById('modalContent').innerText = content;
+          document.getElementById('customModal').style.display = "block";
+        }
+      });
+
+      document.getElementById('closeModal').onclick = function() {
+        document.getElementById('customModal').style.display = "none";
+      }
+      
+      window.onclick = function(event) {
+        if (event.target == document.getElementById('customModal')) {
+          document.getElementById('customModal').style.display = "none";
+        }
+      }
+    </script>
+    """
+    # Inject before </body>
+    html_string = html_string.replace('</body>', modal_html + '</body>')
 
     # Give unique ID to each graphs
     unique_id = f"graph_{uuid.uuid4().hex[:8]}"
