@@ -9,7 +9,7 @@ from features.database import SessionLocal, Account, UserSession
 
 from state import (
     current_view, current_user, current_role, current_session_id,
-    show_logout_confirm, input_mode, sidebar_open, show_help_modal,
+    show_logout_confirm, show_delete_confirm, input_mode, sidebar_open, show_help_modal,
     rss_link, is_loading, current_page, items_per_page, error_message,
     display_mode, notes_input, save_status, sidebar_search,
     news_title, news_description, selected_article_data, rss_feed_results,
@@ -243,6 +243,7 @@ def DashboardScreen():
                     # Redirect to the login screen
                     current_view.set("login")
                     show_logout_confirm.set(False)
+                    show_delete_confirm.set(False)
                     
                     # Force a clean URL
                     router.push("/")
@@ -309,10 +310,10 @@ def DashboardScreen():
                                 solara.Button("Original Text", value="original")
 
                     # Main Layout Grid
-                    with solara.Columns([8, 4], style={"gap": "1.25rem", "padding": "10px"}):
+                    with solara.Row(classes=["analysis-grid"], style={"padding": "10px", "justify-content": "space-between", "flex-wrap": "wrap", "padding": "20px"}):
                         
-                        # LEFT COLUMN: Content and Relationship Map
-                        with solara.Column(style={"gap": "1.25rem"}):
+                        # Content
+                        with solara.Column(classes=["left-column-results"], style={"gap": "1.25rem"}):
                             with solara.Div(style={"background": "white", "padding": "1.5rem", "border-radius": "0.12px", "box-shadow": "0 4px 6px rgba(0,0,0,0.05)"}):
                                 solara.Text(data['title'], classes=["roboto-mono-regular"], style={"font-size": "1.5rem", "font-weight": "bold", "margin-bottom": "1rem", "display": "block"})
                                 
@@ -322,17 +323,8 @@ def DashboardScreen():
                                 else:
                                     solara.Text(data['original-text'], classes=["roboto-mono-light"], style={"text-align": "justify", "display": "block", "white-space": "pre-wrap", "line-height": "1.6", "font-size": "1rem"})
 
-                            # Relationship Map
-                            with solara.Div():
-                                solara.Text("Entity Relationship Network", classes=["roboto-mono-medium"], style={"margin-bottom": "0.6rem", "display": "block", "font-size": "1.1rem"})
-                                if data['graph']:
-                                    solara.HTML(tag="iframe", attributes={
-                                        "srcdoc": data['graph'], 
-                                        "style": "width:100%; height:35rem; border:1px solid #DDD; border-radius:0.12px; background: white;"
-                                    })
-
-                        # RIGHT COLUMN: Analytics & Annotation
-                        with solara.Column(style={"gap": "1.25rem"}):
+                        # Analytics
+                        with solara.Column(classes=["right-column-analytics"], style={"gap": "1.25rem"}):
                             # Top Entities (Manhattan Distance Ranking)
                             with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
                                 solara.Text("Top Entities (Ranked)", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "1rem", "display": "block", "font-size": "1.1rem"})
@@ -359,38 +351,68 @@ def DashboardScreen():
                                 with solara.Row(style={"flex-wrap": "wrap", "gap": "0.5rem"}):
                                     for name in all_names:
                                         solara.Div(name, classes=["roboto-mono-regular"], style={"padding": "0.25rem 0.6rem", "border": "1px solid #DDD", "border-radius": "1rem", "font-size": "0.75rem", "background": "#F9F9F9"})
-
-                            # Annotation Section 
-                            with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
-                                solara.Text("Notes", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.6rem", "display": "block", "font-size": "1rem"})
-                                with solara.Div(style={"font-size": "0.875rem"}):
-                                    solara.InputTextArea(
-                                        label="Add annotations...", 
-                                        value=notes_input, 
-                                        rows=5, 
-                                        continuous_update=True
-                                    )
-                                solara.Button(
-                                    "Save Analysis", 
-                                    classes=["push-button", "action-btn", "roboto-mono-regular"], 
-                                    style={"width": "100%", "margin-top": "1rem", "margin-bottom": "1rem", "font-size": "1rem"},
-                                    on_click=lambda: save_to_azure(selected_article_data.value, notes_input.value),
-                                )
-                                with solara.Column():
-                                    # Only show if article is stored 
-                                    if selected_article_data.value and "articleid" in selected_article_data.value:
-                                        with solara.Row(justify="end"):
+                                        
+                # Relationship Map and Notes (Outside the Grid)
+                with solara.Column(style={"gap": "1.25rem", "padding": "20px", "width": "100%"}):
+                    # Relationship Map
+                    with solara.Div(classes=["relationship-map-container"]):
+                        solara.Text("Entity Relationship Network", classes=["roboto-mono-medium"], style={"margin-bottom": "0.6rem", "display": "block", "font-size": "1.1rem"})
+                        if data['graph']:
+                            solara.HTML(tag="iframe", attributes={
+                                "srcdoc": data['graph'], 
+                                "style": "width:100%; height:35rem; border:1px solid #DDD; border-radius:0.12px; background: white;"
+                            })
+                            
+                    # Annotation Section 
+                    with solara.Div(classes=["notes-section-container"]):
+                        solara.Text("Notes", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.6rem", "display": "block", "font-size": "1rem"})
+                        with solara.Div(style={"font-size": "0.875rem"}):
+                            solara.InputTextArea(
+                                label="Add annotations...", 
+                                value=notes_input, 
+                                rows=5, 
+                                continuous_update=True
+                            )
+                        with solara.Row(justify="end"):
+                            solara.Button(
+                                "Save Analysis", 
+                                classes=["push-button", "action-btn", "roboto-mono-regular"], 
+                                style={"margin-top": "1rem", "margin-bottom": "1rem", "font-size": "1rem", "align-item": "center"},
+                                on_click=lambda: save_to_azure(selected_article_data.value, notes_input.value),
+                            )
+                        with solara.Row(justify="end"):
+                            # Only show if article is stored
+                            if selected_article_data.value and "articleid" in selected_article_data.value:
+                                if not show_delete_confirm.value:
+                                    with solara.Row(justify="end"):
+                                        solara.Button(
+                                            icon_name="mdi-delete",
+                                            on_click=lambda: show_delete_confirm.set(True),
+                                            classes=["push-button", "red-btn", "roboto-mono-regular"],
+                                            style={"font-size": "1rem", "margin-bottom": "1rem"},
+                                        )
+                                else:
+                                    with solara.Div(classes=["logout-confirm-container"]):
+                                        with solara.Row(style={"gap": "10px", "background-color": "transparent", "justify-content": "flex-end"}):
                                             solara.Button(
-                                                icon_name="delete",
-                                                on_click=delete_current_article,
+                                                "Delete now", 
+                                                on_click=lambda: [delete_current_article(), show_delete_confirm.set(False)], 
                                                 classes=["push-button", "red-btn", "roboto-mono-regular"],
-                                                 style={"font-size": "1rem", "margin-bottom": "1rem"},
+                                                style={"background-color": "#d9534f", "color": "white"}
                                             )
-                                # Save status
-                                if save_status.value == "success":
-                                    solara.Success("Analysis Saved", on_close=lambda: save_status.set(""))
-                                elif "error" in save_status.value:
-                                    solara.Error(f"Cloud Save Failed: {save_status.value}", on_close=lambda: save_status.set(""))
+                                            solara.Button(
+                                                "Cancel", 
+                                                on_click=lambda: show_delete_confirm.set(False), 
+                                                text=True,
+                                                classes=["push-button", "toggle-btn", "roboto-mono-regular"],
+                                                style={"font-size": "1rem", "margin-bottom": "1rem"}
+                                            )
+
+                        # Save status
+                        if save_status.value == "success":
+                            solara.Success("Analysis Saved", on_close=lambda: save_status.set(""))
+                        elif "error" in save_status.value:
+                            solara.Error(f"Cloud Save Failed: {save_status.value}", on_close=lambda: save_status.set(""))
 
             # Input View (Manual or RSS)
             else:

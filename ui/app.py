@@ -40,10 +40,10 @@ def Page():
 
         @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
                  
-        .login-title { font-size: clamp(2.25rem, 5vw + 1rem, 4.5rem); }
-        .login-subtitle { font-size: clamp(0.875rem, 2vw + 0.5rem, 1.125rem); }
-        .login-btn { font-size: clamp(0.875rem, 2vw + 0.5rem, 1rem) !important; }
-        .login-terms { font-size: clamp(0.65rem, 1.5vw + 0.4rem, 0.75rem) !important; }
+        .login-title { font-size: clamp(2.25rem, 7vw + 1rem, 4.5rem) !important; }
+        .login-subtitle { font-size: clamp(0.875rem, 3vw + 0.5rem, 1.125rem) !important; }
+        .login-btn { font-size: clamp(0.875rem, 2.5vw + 0.5rem, 1rem) !important; }
+        .login-terms { font-size: clamp(0.65rem, 1.8vw + 0.4rem, 0.75rem) !important; }
                  
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; z-index: 1000;}
@@ -119,7 +119,15 @@ def Page():
         /* Custom Modal CSS */
         .modal-overlay { position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */}
         .modal-content { background-color: #FFFFFF; padding: 40px;border-radius: 12px; width: 50%; min-width: 400px; max-width: 600px; border: 2px solid #1C6EA4; box-shadow: 0px 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto;}
-                 
+        
+        /* Using calc to account for the 20px gap */
+        .left-column-results { 
+            width: calc(67% - 20px) !important; 
+        }
+        .right-column-analytics { 
+            width: 32% !important; 
+        }
+        
         /* RSS List Hover Effects */
         .rss-item-row { transition: background-color 0.2s; border-radius: 12px; margin-bottom: 5px; } .rss-item-row:hover { background-color: rgba(28, 110, 164, 0.1) !important; }
         .analyze-btn { opacity: 0; transition: opacity 0.2s; }
@@ -137,6 +145,34 @@ def Page():
             
             /* Make the form container wider to fit the smaller workspace */
             .form-container { width: 80%; min-width: unset; }
+            
+            .sidebar-open { width: 35%; }
+            .workspace { width: 65%; padding: 30px 40px; }
+            .form-container { width: 80%; min-width: unset; }
+            
+            /* Stack the row into a column */
+            .analysis-grid {
+                display: block !important;
+                width: 100% !important;
+            }
+
+            /* Force sections to full width */
+            .relationship-map-container, 
+            .notes-section-container {
+                display: block !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 20px !important;
+            }
+                 
+            .left-column-results, 
+            .right-column-analytics {
+                width: 100% !important;
+                flex: 0 0 100% !important;
+                max-width: 100% !important;
+                margin-bottom: 20px !important;
+            }
+            
         }
         
         /* MOBILE BEHAVIOR */
@@ -157,6 +193,7 @@ def Page():
 
             /* Modal fits mobile screen */
             .modal-content { width: 92%; min-width: unset; padding: 20px; }
+                 
         }
     """)
 

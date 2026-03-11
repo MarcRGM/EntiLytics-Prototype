@@ -11,6 +11,7 @@ current_user = solara.reactive(None)
 current_role = solara.reactive("user")
 current_session_id = solara.reactive(None)
 show_logout_confirm = solara.reactive(False)
+show_delete_confirm = solara.reactive(False)
 
 # Dashboard state
 input_mode = solara.reactive("manual") 
