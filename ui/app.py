@@ -47,8 +47,8 @@ def Page():
                  
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; z-index: 1000;}
-        .sidebar-open { width: 25%; padding: 20px 20px; }
-        .sidebar-closed { width: 0%; padding: 0px; }
+        .sidebar-open { width: 25%; padding: 20px 20px; transition: 0.3s; }
+        .sidebar-closed { width: 0%; padding: 0px; overflow: hidden; transition: 0.3s; }
         .sidebar ::-webkit-scrollbar { width: 5px; }
         .sidebar ::-webkit-scrollbar-track { background: transparent; }
         .sidebar ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
@@ -147,6 +147,7 @@ def Page():
             .form-container { width: 80%; min-width: unset; }
             
             .sidebar-open { width: 35%; }
+                 
             .workspace { width: 65%; padding: 30px 40px; }
             .form-container { width: 80%; min-width: unset; }
             

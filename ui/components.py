@@ -219,7 +219,7 @@ def DashboardScreen():
                         for article in filtered_list:
                             solara.Button(
                                 f"{article.title}", 
-                                on_click=lambda a=article: display_historical_analysis(a.articleid),
+                                on_click=lambda a=article: [display_historical_analysis(a.articleid), sidebar_open.set(False)],
                                 text=True, 
                                 classes=["roboto-mono-medium", "article-btn-text"],
                                 style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%", "overflow": "hidden"}
