@@ -111,7 +111,7 @@ def LoginScreen():
     auth_code = query_params.get("code", [None])[0]
 
     def handle_oauth():
-        # If we have a code but we are already logged in (via Restorer), ignore it!
+        # If we have a code but we are already logged in (via Restorer), ignore it
         if current_user.value is not None and auth_code:
             router.push("/")
             return
@@ -121,7 +121,7 @@ def LoginScreen():
             
             if user_info and "error" in user_info:
                 print("Bad code detected. Cleaning URL via redirect...")
-                # HARD REDIRECT to wipe the ?code=
+                # Hard redirect to wipe the ?code=
                 solara.HTML(tag="script", unsafe_innerHTML="window.location.href = window.location.origin + window.location.pathname;")
                 return
 
@@ -134,7 +134,7 @@ def LoginScreen():
                         current_view.set("admin") 
                     else:
                         current_view.set("dashboard")
-                    # Write cookie AND clean URL
+                    # Write cookie and clean URL
                     solara.HTML(tag="script", unsafe_innerHTML=f"""
                         document.cookie = 'entil_sid={sid}; max-age=604800; path=/; SameSite=Lax';
                         window.location.href = '/';
@@ -153,13 +153,13 @@ def LoginScreen():
                 display_help_button()
                 solara.HTML(unsafe_innerHTML="""
                     <div style="text-align: center;">
-                        <span class='space-mono-bold' style="color:#1C6EA4; font-size: 4.5rem;">Enti</span><span class='space-mono-bold' style="color:#578FCA; font-size:72px;">Lytics</span>
-                        <p class='roboto-mono-medium' style="color: #666; margin-top: -10px; font-size: 1.125rem;">News Information Management System</p>
+                        <span class='space-mono-bold login-title' style="color:#1C6EA4;">Enti</span><span class='space-mono-bold login-title' style="color:#578FCA;">Lytics</span>
+                        <p class='roboto-mono-medium login-subtitle' style="color: #666; margin-top: -10px;">News Information Management System</p>
                     </div>
                 """)
-                solara.Button(label="Continue with Google", icon_name="mdi-google", href=get_google_login_url(), classes=["push-button", "google-auth"])
+                solara.Button(label="Continue with Google", icon_name="mdi-google", href=get_google_login_url(), classes=["push-button", "google-auth", "login-btn"])
                 solara.HTML(unsafe_innerHTML="""
-                    <div class='roboto-mono-regular' style="text-align: center; color: #777; font-size: 12px; margin-top: 10px;">
+                    <div class='roboto-mono-regular login-terms' style="text-align: center; color: #777; margin-top: 10px;">
                         By continuing, you agree to EntiLytics' terms. 
                     </div>
                 """)

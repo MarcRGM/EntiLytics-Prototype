@@ -31,7 +31,12 @@ def Page():
         .roboto-mono-medium { font-family: "Roboto Mono", monospace; font-weight: 500; }
 
         @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
-
+                 
+        .login-title { font-size: clamp(2.25rem, 5vw + 1rem, 4.5rem); }
+        .login-subtitle { font-size: clamp(0.875rem, 2vw + 0.5rem, 1.125rem); }
+        .login-btn { font-size: clamp(0.875rem, 2vw + 0.5rem, 1rem) !important; }
+        .login-terms { font-size: clamp(0.65rem, 1.5vw + 0.4rem, 0.75rem) !important; }
+                 
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; z-index: 1000;}
         .sidebar-open { width: 25%; padding: 20px 20px; }
@@ -81,7 +86,11 @@ def Page():
                  
         /* Remove solara footer*/
         div[style*="bottom: 0px"][style*="position: absolute"] { display: none !important; }
-                 
+        
+        @media (max-width: 1024px) { 
+
+        }
+        
         /* MOBILE BEHAVIOR */
         @media (max-width: 600px) {
             /* Show close button inside sidebar */
