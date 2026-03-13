@@ -107,6 +107,29 @@ def Page():
             gap: 10px;
             background-color: transparent;
         }
+                 
+        .info-clamp-text {
+            display: -webkit-box;
+            -webkit-box-orient: vertical; 
+            overflow: hidden;
+            font-family: 'Roboto Mono', monospace;
+            text-align: justify;
+            hyphens: auto;
+            color: #555;
+            line-height: 1.6;
+            font-size: clamp(10px, 1.1vw, 11.5px) !important;
+        }
+                 
+        .info-clamp-text:hover {
+            cursor: help;
+        }
+                 
+        .disclaimer-text {
+            font-size: clamp(10px, 1.1vw, 11px) !important;
+            font-family: 'Roboto Mono', monospace;
+            text-align: justify;
+            line-height: 1.6;
+        }
 
         /* Hidden on desktop, shown on mobile */
         .mobile-close-btn { display: none !important; }   
@@ -173,7 +196,6 @@ def Page():
                 max-width: 100% !important;
                 margin-bottom: 20px !important;
             }
-            
         }
         
         /* MOBILE BEHAVIOR */
@@ -194,7 +216,8 @@ def Page():
 
             /* Modal fits mobile screen */
             .modal-content { width: 92%; min-width: unset; padding: 20px; }
-                 
+            
+            
         }
     """)
 

@@ -357,6 +357,17 @@ def DashboardScreen():
                     # Relationship Map
                     with solara.Div(classes=["relationship-map-container"]):
                         solara.Text("Entity Relationship Network", classes=["roboto-mono-medium"], style={"margin-bottom": "0.6rem", "display": "block", "font-size": "1.1rem"})
+                        
+                        solara.Text(
+                            "Click connection lines to view shared context between entities (if applicable).", 
+                            style={
+                                "font-size": "clamp(10px, 1vw, 12px)", 
+                                "color": "#666", 
+                                "font-family": "'Roboto Mono', monospace",
+                                "display": "block"
+                            }
+                        )
+                        
                         if data['graph']:
                             solara.HTML(tag="iframe", attributes={
                                 "srcdoc": data['graph'], 
@@ -494,7 +505,45 @@ def DashboardScreen():
                                     classes=["push-button", "toggle-btn", "roboto-mono-regular"],
                                     disabled=end >= len(rss_feed_results.value), 
                                     on_click=lambda: current_page.set(current_page.value + 1))
+                else:  
+                    # System Information & Disclaimer Section
+                    with solara.Div(style={"width": "100%", "max-width": "850px", "margin": "20px auto", "padding": "0 15px"}):
+                        
+                        # Usage
+                        with solara.Div(style={
+                            "background": "#fbfbfb", 
+                            "border-left": "3px solid #1C6EA4", 
+                            "padding": "15px", 
+                            "margin-bottom": "15px",
+                            "border-radius": "2px"
+                        }):
+                            solara.Text("System Information & Usage Guide", classes=["roboto-mono-medium"], 
+                                        style={"display": "block", "margin-bottom": "10px", "color": "#1C6EA4", "font-size": "12px", "text-transform": "uppercase"})
+                            
+                            with solara.Div(classes=["info-clamp-text"], style={"color": "#444"}):
+                                solara.HTML(unsafe_innerHTML="""
+                                    <b>Entities:</b> Entities are names of people, organizations, and locations detected in the article. If none appear, the content may not contain recognizable proper nouns, or the text is too short for the model to process confidently.<br><br>
+                                    <b>Ranked Entities:</b> Not all detected entities are equally important. The system scores each entity by how closely it relates to the article as a whole. Only entities that pass the relevance threshold are ranked and displayed.<br><br>
+                                    <b>Relationship Network:</b> The network map shows connections between the top-ranked entities based on how often they appear together in the same context. It will not generate if fewer than two important entities are found. Note that some entities may appear in the map without any connections, as they are still considered important to the article but do not share enough context with other entities to form a relationship.<br><br>
+                                    <b>RSS Feed URL:</b> An RSS feed is a link that news websites provide to share their latest articles automatically. Paste one here and the system will fetch and list the available articles for you to analyze.
+                                """)
 
+                        # Disclaimer
+                        with solara.Div(style={
+                            "background": "#fdfdfd", 
+                            "border-left": "3px solid #94a3b8", 
+                            "padding": "12px 15px", 
+                            "border-radius": "2px"
+                        }):
+                            with solara.Row(style={"align-items": "center", "margin-bottom": "8px", "background-color": "transparent", "gap": "8px"}):
+                                solara.v.Icon(children=["mdi-alert-circle-outline"], style_="color: #64748b; font-size: 12px;")
+                                solara.Text("Content Disclaimer", classes=["roboto-mono-medium"], 
+                                            style={"color": "#475569","font-size": "12px", "text-transform": "uppercase"})
+                            
+                            with solara.Div(classes=["disclaimer-text"], style={"color": "#64748b"}):
+                                solara.HTML(unsafe_innerHTML="""
+                                    EntiLytics analyzes the structure and entities of the text provided. It does not verify the accuracy of the content or detect misinformation and fake news. The system is designed for use with news articles and performs best on factual, entity-rich content. While the system will still process any text submitted, results may be less meaningful for non-news content such as opinions, fiction, or social media posts, as these may lack the named entities and structure the system is built around.
+                                """)
 
 @solara.component
 def AdminPage():
