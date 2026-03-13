@@ -545,18 +545,51 @@ def DashboardScreen():
                                     EntiLytics analyzes the structure and entities of the text provided. It does not verify the accuracy of the content or detect misinformation and fake news. The system is designed for use with news articles and performs best on factual, entity-rich content. While the system will still process any text submitted, results may be less meaningful for non-news content such as opinions, fiction, or social media posts, as these may lack the named entities and structure the system is built around.
                                 """)
 
+                # Only show if the user is an admin
+                with solara.Row(style={"align-items": "center", "background-color": "transparent", "flex-wrap": "wrap"}):
+                    if current_role.value == "admin":
+                        solara.Button(
+                            "Admin Console", 
+                            on_click=lambda: current_view.set("admin"), 
+                            icon_name="mdi-shield-account",
+                            classes=["push-button", "toggle-btn", "roboto-mono-regular"],
+                            style={
+                                "font-size": "clamp(0.75rem, 1.2vw, 0.9rem)",
+                                "border": "1px solid #1C6EA4" 
+                            }
+                        )
 @solara.component
 def AdminPage():
     # Centralized Style Dictionary
     s = {
-        "page_container": {"padding": "40px", "background-color": "#FADA7A", "min-height": "100vh"},
-        "main_card": {"background": "white", "padding": "25px", "border-radius": "15px", "box-shadow": "0 4px 6px rgba(0,0,0,0.1)"},
-        "activity_box": {"margin": "10px 0 0 20px", "padding": "15px", "background": "#fdfdfd", "border-left": "4px solid #FADA7A"},
-        "user_row": {"border-bottom": "1px solid #EEE", "padding": "15px 0"},
-        "search_input": {"margin-bottom": "20px", "width": "100%"}
+        "page_container": {
+            "padding": "clamp(15px, 3vw, 40px)", 
+            "background-color": "#FADA7A", 
+            "min-height": "100vh"
+        },
+        "main_card": {
+            "background": "white", 
+            "padding": "clamp(15px, 2vw, 25px)", 
+            "border-radius": "15px", 
+            "box-shadow": "0 4px 6px rgba(0,0,0,0.1)"
+        },
+        "activity_box": {
+            "margin": "10px 0 0 10px", 
+            "padding": "15px", 
+            "background": "#fdfdfd", 
+            "border-left": "4px solid #FADA7A"
+        },
+        "user_row": {
+            "border-bottom": "1px solid #EEE", 
+            "padding": "15px 0"
+        },
+        "search_input": {
+            "margin-bottom": "20px", 
+            "width": "100%"
+        }
     }
 
-    # Reactive states
+    # Reactive states (keep your existing logic)
     users, set_users = solara.use_state([])
     search_term = solara.use_reactive("") 
     refresh_counter = solara.use_reactive(0)
@@ -591,82 +624,71 @@ def AdminPage():
 
     # UI LAYOUT
     with solara.Column(style=s["page_container"]):
-        # Header Section
-        with solara.Row(justify="space-between", style={"background-color": "transparent", "align-items": "center", "margin-bottom": "30px"}):
-            solara.Text("EntiLytics Admin Console", classes=["space-mono-bold"], style={"font-size": "2.5rem", "color": "#3674B5"})
-            with solara.Row(style={"gap": "15px", "align-items": "center", "background-color": "transparent"}):
-                # Navigation Button
+        # Header Section 
+        with solara.Row(justify="space-between", style={"background-color": "transparent", "align-items": "center", "margin-bottom": "30px", "gap": "20px"}):
+            solara.Text("EntiLytics Admin Console", classes=["space-mono-bold"], 
+                        style={"font-size": "clamp(1.5rem, 5vw, 2.5rem)", "color": "#3674B5"})
+            
+            with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent", "flex-wrap": "wrap"}):
                 solara.Button("View Dashboard", on_click=lambda: current_view.set("dashboard"), classes=["push-button", "toggle-btn", "roboto-mono-regular"])
                 
-                # Logout Logic
                 if not show_logout_confirm.value:
                     solara.Button("Logout", on_click=lambda: show_logout_confirm.set(True), classes=["push-button", "red-btn", "roboto-mono-regular"])
                 else:
                     with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
-                        solara.Text("Are you sure?", classes=["roboto-mono-medium"], style={"color": "#3674B5", "font-family": "'Roboto Mono', monospace"})
-                        solara.Button(
-                            "Yes", 
-                            on_click=handle_logout, 
-                            classes=["push-button", "red-btn"],
-                            style={"background-color": "#d9534f", "color": "white", "padding": "2px 10px"}
-                        )
-                        solara.Button(
-                            "No", 
-                            on_click=lambda: show_logout_confirm.set(False), 
-                            text=True,
-                            classes=["push-button", "toggle-btn"],
-                            style={"color": "#3674B5"}
-                        )
+                        solara.Text("Confirm?", classes=["roboto-mono-medium"], style={"color": "#3674B5", "font-size": "0.9rem"})
+                        solara.Button("Yes", on_click=handle_logout, classes=["push-button", "red-btn"])
+                        solara.Button("No", on_click=lambda: show_logout_confirm.set(False), text=True, classes=["push-button", "toggle-btn"], style={"color": "#3674B5"})
 
         # Main Management Container
         with solara.Div(style=s["main_card"]):
-            solara.Text("User Management & Activity Audit", classes=["roboto-mono-medium"], style={"font-size": "1.2rem", "margin-bottom": "15px", "display": "block"})
+            solara.Text("User Management & Activity Audit", classes=["roboto-mono-medium"], 
+                        style={"font-size": "clamp(1rem, 2.5vw, 1.2rem)", "margin-bottom": "15px", "display": "block"})
             
-            # Search Bar Component
-            solara.InputText(
-                label="Search by Gmail...", 
-                value=search_term, 
-                continuous_update=True,
-                classes=["roboto-mono-regular"],
-                style=s["search_input"]
-            )
+            solara.InputText(label="Search by Gmail...", value=search_term, continuous_update=True, style=s["search_input"])
 
-            if not users:
-                solara.ProgressLinear(color="#3674B5")
-            
-            # Display filtered results
-            for users in filtered_users:
-                is_admin = users.account_role == "admin"
-                is_pending = delete_confirm_id.value == users.accountid
+            for user in filtered_users:
+                is_admin = user.account_role == "admin"
+                is_pending = delete_confirm_id.value == user.accountid
                 
                 with solara.Column(style=s["user_row"]):
-                    with solara.Row(style={"align-items": "center"}):
-                        solara.Text(users.gmail, classes=["roboto-mono-regular"], style={"width": "35%", "font-weight": "bold" if is_admin else "normal"})
-                        solara.Text(users.account_role.upper(), classes=["roboto-mono-regular"], style={"width": "15%", "color": "#3674B5" if is_admin else "#666", "font-size": "0.8rem"})
+                    with solara.Row(style={"align-items": "center", "flex-wrap": "wrap", "gap": "10px"}):
+                        solara.Text(user.gmail, classes=["roboto-mono-regular"], 
+                                    style={
+                                        "flex": "1 1 200px", 
+                                        "font-size": "clamp(0.85rem, 1.5vw, 1rem)",
+                                        "font-weight": "bold" if is_admin else "normal",
+                                        "word-break": "break-all"
+                                    })
                         
-                        solara.Button("View Activity", 
-                                      on_click=lambda uid=users.accountid: selected_user_id.set(uid if selected_user_id.value != uid else None), 
-                                      text=True, classes=["roboto-mono-regular"], style={"color": "#3674B5"})
+                        # Role Badge
+                        solara.Text(user.account_role.upper(), classes=["roboto-mono-regular"], 
+                                    style={"width": "80px", "color": "#3674B5" if is_admin else "#666", "font-size": "0.75rem"})
+                        
+                        solara.Button("Activity", 
+                                      on_click=lambda uid=user.accountid: selected_user_id.set(uid if selected_user_id.value != uid else None), 
+                                      text=True, style={"color": "#3674B5", "font-size": "0.8rem"})
                         
                         solara.Div(style={"flex-grow": "1"})
                         
+                        # Delete Section
                         if not is_pending:
                             solara.Button(icon_name="mdi-delete", 
-                                          on_click=lambda uid=users.accountid: delete_confirm_id.set(uid),
+                                          on_click=lambda uid=user.accountid: delete_confirm_id.set(uid),
                                           disabled=is_admin,
                                           classes=["push-button", "red-btn"] if not is_admin else [],
                                           style={"color": "white" if not is_admin else "#ccc"})
                         else:
-                            with solara.Row(style={"gap": "10px"}):
-                                solara.Button("Confirm?", on_click=lambda uid=users.accountid, email=users.gmail: handle_delete(uid, email), classes=["push-button", "red-btn", "roboto-mono-regular"])
-                                solara.Button("Cancel", on_click=lambda: delete_confirm_id.set(None), text=True, classes=["roboto-mono-regular"])
+                            with solara.Row(style={"gap": "5px"}):
+                                solara.Button("Del", on_click=lambda uid=user.accountid: handle_delete(uid, user.gmail), classes=["push-button", "red-btn"])
+                                solara.Button("X", on_click=lambda: delete_confirm_id.set(None), text=True)
 
-                    if selected_user_id.value == users.accountid:
-                        titles = get_user_activity(users.accountid)
+                    # Activity Dropdown
+                    if selected_user_id.value == user.accountid:
+                        titles = get_user_activity(user.accountid)
                         with solara.Column(style=s["activity_box"]):
                             if not titles:
-                                solara.Text("No historical activity found.", classes=["roboto-mono-regular"], style={"font-style": "italic", "color": "#999"})
+                                solara.Text("No history found.", style={"font-size": "0.8rem", "font-style": "italic"})
                             else:
-                                solara.Text("Analyzed Article Titles:", classes=["roboto-mono-bold"], style={"font-size": "0.95rem", "margin-bottom": "5px"})
                                 for title in titles:
-                                    solara.Text(f"• {title}", classes=["roboto-mono-regular"], style={"font-size": "0.85rem", "margin-bottom": "3px"})
+                                    solara.Text(f"• {title}", style={"font-size": "0.85rem", "margin-bottom": "4px"})
