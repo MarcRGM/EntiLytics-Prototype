@@ -493,7 +493,7 @@ def DashboardScreen():
                     # Manual spacing
                     solara.HTML(unsafe_innerHTML='<div style="height: 20px; width: 100%;"></div>')
                     # Navigation Buttons
-                    with solara.Row(justify="center", style={"background-color": "transparent"}):
+                    with solara.Row(justify="center", style={"background-color": "transparent", "padding-bottom": "25px"}):
                         solara.Button("Previous", 
                                     classes=["push-button", "toggle-btn", "roboto-mono-regular"],
                                     disabled=current_page.value == 0, 
@@ -555,7 +555,7 @@ def DashboardScreen():
                             classes=["push-button", "toggle-btn", "roboto-mono-regular"],
                             style={
                                 "font-size": "clamp(0.75rem, 1.2vw, 0.9rem)",
-                                "border": "1px solid #1C6EA4" 
+                                "border": "1px solid #1C6EA4"
                             }
                         )
 @solara.component
@@ -685,10 +685,43 @@ def AdminPage():
 
                     # Activity Dropdown
                     if selected_user_id.value == user.accountid:
-                        titles = get_user_activity(user.accountid)
+                        activity_data = get_user_activity(user.accountid)
+                        
                         with solara.Column(style=s["activity_box"]):
-                            if not titles:
-                                solara.Text("No history found.", style={"font-size": "0.8rem", "font-style": "italic"})
+                            if not activity_data:
+                                solara.Text("No historical activity found.", 
+                                            style={"font-size": "0.8rem", "font-style": "italic", "color": "#888"})
                             else:
-                                for title in titles:
-                                    solara.Text(f"• {title}", style={"font-size": "0.85rem", "margin-bottom": "4px"})
+                                for title, date_created in activity_data:
+                                    display_date = date_created.strftime("%b %d, %Y") if date_created else "---"
+                                    with solara.Row(
+                                        justify="space-between", 
+                                        style={
+                                            "width": "100%", 
+                                            "align-items": "flex-start", 
+                                            "margin-bottom": "8px", 
+                                            "gap": "20px", 
+                                            "background-color": "transparent"
+                                        }
+                                    ):
+                                        solara.Text(
+                                            f"• \"{title}\"", 
+                                            classes=["roboto-mono-regular"], 
+                                            style={
+                                                "font-size": "clamp(0.8rem, 1.2vw, 0.9rem)", 
+                                                "color": "#333",
+                                                "flex": "1", 
+                                                "line-height": "1.4"
+                                            }
+                                        )
+                                        solara.Text(
+                                            display_date, 
+                                            style={
+                                                "font-size": "clamp(0.7rem, 1vw, 0.8rem)", 
+                                                "color": "#888",  
+                                                "white-space": "nowrap",
+                                                "font-family": "'Roboto Mono', monospace",
+                                                "text-align": "right",
+                                                "margin-top": "2px"   
+                                            }
+                                        )

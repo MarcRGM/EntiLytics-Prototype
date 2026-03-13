@@ -269,8 +269,8 @@ def get_user_activity(account_id):
     db = SessionLocal()
     try:
         # Fetch articles that have summaries created by this specific user
-        articles = db.query(Article).join(Summary).filter(Summary.accountid == account_id).all()
-        return [a.title for a in articles]
+        articles = db.query(Article).join(Summary).filter(Summary.accountid == account_id).order_by(Article.created_at.desc()).all()
+        return [(a.title, a.created_at) for a in articles]
     finally:
         db.close()
 
