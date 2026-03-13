@@ -37,8 +37,6 @@ def Page():
         .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; border: 1px solid #DDDDDD !important; }
         
         .red-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
-
-        @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
                  
         .login-title { font-size: clamp(2.25rem, 7vw + 1rem, 4.5rem) !important; }
         .login-subtitle { font-size: clamp(0.875rem, 3vw + 0.5rem, 1.125rem) !important; }
@@ -46,46 +44,19 @@ def Page():
         .login-terms { font-size: clamp(0.65rem, 1.8vw + 0.4rem, 0.75rem) !important; }
                  
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
+        @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
         .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; z-index: 1000;}
         .sidebar-open { width: 25%; padding: 20px 20px; transition: 0.3s; }
         .sidebar-closed { width: 0%; padding: 0px; overflow: hidden; transition: 0.3s; }
         .sidebar ::-webkit-scrollbar { width: 5px; }
         .sidebar ::-webkit-scrollbar-track { background: transparent; }
         .sidebar ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
-        .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }   
-        
-        .workspace { width: 75%; height: 100vh; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
-        .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; padding: 10px; }
-        
-        .workspace-title {
-            font-size: clamp(2rem, 4vw + 1rem, 3rem) !important; /* Scales from 32px to 48px */
-        }
-        
-        .workspace-subtitle {
-            font-size: clamp(0.875rem, 2vw + 0.5rem, 1.125rem) !important; /* Scales from 14px to 18px */
-        }
-                 
-        .form-action-row {
-            margin-top: clamp(1.25rem, 3vw, 1.875rem) !important;
-            gap: clamp(0.625rem, 2vw, 1.25rem) !important;
-            flex-wrap: wrap;
-        }
-
-        .form-btn-text {
-            font-size: clamp(0.75rem, 2vw + 0.4rem, 1rem) !important;
-        }
-
-        .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
-        .menu-btn:hover { color: #578FCA !important; }
-                 
-        .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
-        .help-btn:hover { color: #578FCA !important; }
+        .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }  
 
         /* Saved articles */
         .article-btn-text { white-space: nowrap; overflow: hidden !important; font-size: clamp(0.75rem, 0.56vw + 0.54rem, 0.9rem) !important; }
         .article-btn-text .v-btn__content { width: 100%; display: block !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; text-align: left !important; }
         
-        /* Responsive Sidebar Text using clamp() */
         .sidebar-title { 
             font-size: clamp(1rem, 0.75vw + 0.72rem, 1.2rem) !important; 
         }
@@ -106,7 +77,24 @@ def Page():
             align-items: center;
             gap: 10px;
             background-color: transparent;
-        }
+        } 
+        
+        .workspace { width: 75%; height: 100vh; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
+        .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; padding: 10px; }
+        
+        .workspace-title { font-size: clamp(2rem, 4vw + 1rem, 3rem) !important;  }
+        
+        .workspace-subtitle { font-size: clamp(0.875rem, 2vw + 0.5rem, 1.125rem) !important;  }
+                 
+        .form-action-row { margin-top: clamp(1.25rem, 3vw, 1.875rem) !important; gap: clamp(0.625rem, 2vw, 1.25rem) !important; flex-wrap: wrap; }
+
+        .form-btn-text { font-size: clamp(0.75rem, 2vw + 0.4rem, 1rem) !important; }
+
+        .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
+        .menu-btn:hover { color: #578FCA !important; }
+                 
+        .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
+        .help-btn:hover { color: #578FCA !important; }
                  
         .info-clamp-text {
             display: -webkit-box;
@@ -149,6 +137,15 @@ def Page():
         }
         .right-column-analytics { 
             width: 32% !important; 
+        }
+                 
+        @keyframes slideDown {
+            0% {
+                transform: translateY(-100vh);
+            }
+            100% {
+                transform: translateY(0);
+            }
         }
         
         /* RSS List Hover Effects */

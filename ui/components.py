@@ -210,20 +210,22 @@ def DashboardScreen():
                     if sidebar_search.value.lower() in article.title.lower()
                 ] if saved_list else []
 
-                if not saved_list:
-                    solara.Text("> No articles yet", classes=["roboto-mono-medium", "sidebar-info"], style={"color": "white", "opacity": "0.8"})
-                elif not filtered_list:
-                    solara.Text("No matches found", classes=["roboto-mono-medium", "sidebar-info"], style={"color": "white", "padding": "10px"})
-                else:
-                    with solara.Column(style={"gap": "5px", "background-color": "transparent", "overflow-y": "auto", "flex-grow": "1"}):
-                        for article in filtered_list:
-                            solara.Button(
-                                f"{article.title}", 
-                                on_click=lambda a=article: [display_historical_analysis(a.articleid), sidebar_open.set(False)],
-                                text=True, 
-                                classes=["roboto-mono-medium", "article-btn-text"],
-                                style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%", "overflow": "hidden"}
-                            )
+                # Wrapper to push logout to bottom even when list is empty
+                with solara.Div(style={"flex-grow": "1", "display": "flex", "flex-direction": "column", "background-color": "transparent", "overflow-y": "auto"}):
+                    if not saved_list:
+                        solara.Text("> No articles yet", classes=["roboto-mono-medium", "sidebar-info"], style={"color": "white", "opacity": "0.8"})
+                    elif not filtered_list:
+                        solara.Text("No matches found", classes=["roboto-mono-medium", "sidebar-info"], style={"color": "white", "padding": "10px"})
+                    else:
+                        with solara.Column(style={"gap": "5px", "background-color": "transparent"}):
+                            for article in filtered_list:
+                                solara.Button(
+                                    f"{article.title}", 
+                                    on_click=lambda a=article: [display_historical_analysis(a.articleid), sidebar_open.set(False)],
+                                    text=True, 
+                                    classes=["roboto-mono-medium", "article-btn-text"],
+                                    style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%", "overflow": "hidden"}
+                                )
                 
                 # Logout logic
                 def handle_logout():    
@@ -564,8 +566,9 @@ def AdminPage():
     s = {
         "page_container": {
             "padding": "clamp(15px, 3vw, 40px)", 
-            "background-color": "#FADA7A", 
-            "min-height": "100vh"
+            "background-color": "#113F67", 
+            "min-height": "100vh",
+            "animation": "slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);"
         },
         "main_card": {
             "background": "white", 
@@ -627,7 +630,7 @@ def AdminPage():
         # Header Section 
         with solara.Row(justify="space-between", style={"background-color": "transparent", "align-items": "center", "margin-bottom": "30px", "gap": "20px"}):
             solara.Text("EntiLytics Admin Console", classes=["space-mono-bold"], 
-                        style={"font-size": "clamp(1.5rem, 5vw, 2.5rem)", "color": "#3674B5"})
+                        style={"font-size": "clamp(1.5rem, 5vw, 2.5rem)", "color": "#FADA7A"})
             
             with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent", "flex-wrap": "wrap"}):
                 solara.Button("View Dashboard", on_click=lambda: current_view.set("dashboard"), classes=["push-button", "toggle-btn", "roboto-mono-regular"])
