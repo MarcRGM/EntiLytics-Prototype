@@ -43,6 +43,8 @@ def Page():
         .login-btn { font-size: clamp(0.875rem, 2.5vw + 0.5rem, 1rem) !important; }
         .login-terms { font-size: clamp(0.65rem, 1.8vw + 0.4rem, 0.75rem) !important; }
                  
+        .admin-title { font-size: clamp(2.25rem, 7vw + 1rem, 3.5rem) !important; }
+                 
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
         .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; z-index: 1000;}
@@ -222,6 +224,11 @@ def Page():
     
     print(f"DEBUG: checking={is_checking_session.value}, user={'LOGGED_IN' if current_user.value else 'NONE'}")
     
+    if is_checking_session.value:
+        # Show a splash screen or blank page while checking cookie
+        with solara.Column(style={"min-height": "100vh", "justify-content": "center", "align-items": "center", "background-color": "#FADA7A"}):
+             solara.ProgressLinear(color="#1C6EA4")
+             solara.Text("Verifying Session...", classes=["roboto-mono-medium"], style={"margin-top": "20px", "color": "#1C6EA4"})
     # TRAFFIC CONTROLLER WITH LOADING GATE
     if current_user.value is None:
         LoginScreen()

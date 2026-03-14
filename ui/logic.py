@@ -275,38 +275,33 @@ def get_user_activity(account_id):
         db.close()
 
 def resolve_session(sid):
-    print(f"--- RESOLVING SESSION ---")
-    print(f"Received SID from browser: {sid}")
-    
+    """Checks the database for the Solara Session ID."""
     db = SessionLocal()
     try:
         session = db.query(UserSession).filter(UserSession.session_id == sid).first()
         if session:
-            print(f"Match found in DB for: {session.gmail}")
             if datetime.utcnow() < session.expires_at:
-                print("Session is VALID.")
+                user_acc = db.query(Account).filter(Account.gmail == session.gmail).first()
+                if user_acc:
+                    current_role.set(user_acc.account_role)
+                
                 return {
                     "email": session.gmail,
                     "name": session.name,
                     "picture": session.picture
                 }
-            else:
-                print("Session EXPIRED.")
-        else:
-            print("No matching session found in Azure.")
-    except Exception as e:
-        print(f"DB Error during resolve: {e}")
     finally:
         db.close()
     return None
 
-def create_session(user_info):
+def create_session(user_info, sid):
+    """Stores the Solara Session ID in the database."""
     db = SessionLocal()
     try:
-        sid = str(uuid.uuid4())
-        print(f"--- ATTEMPTING SESSION CREATE ---")
-        print(f"User: {user_info.get('email')}")
-        print(f"Generated SID: {sid}")
+        # Check if session already exists for this ID
+        existing = db.query(UserSession).filter(UserSession.session_id == sid).first()
+        if existing:
+            return sid
 
         new_session = UserSession(
             session_id=sid,
@@ -318,7 +313,6 @@ def create_session(user_info):
         
         db.add(new_session)
         db.commit()
-        print(f"SUCCESS: Session stored in Azure DB.")
         return sid
     except Exception as e:
         db.rollback()

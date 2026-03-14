@@ -45,61 +45,22 @@ def display_help_button():
 
 @solara.component
 def SessionRestorer():
-    bridged_sid, set_bridged_sid = solara.use_state("")
-
-    # Use a raw script tag inside HTML to ensure it runs in the browser immediately
-    solara.HTML(tag="script", unsafe_innerHTML="""
-        (function() {
-            function getCookie(name) {
-                let v = document.cookie.match('(^|;) ?' + name + '=([^;]*)(;|$)');
-                return v ? v[2] : null;
-            }
-            
-            let attempts = 0;
-            const checkExist = setInterval(function() {
-                const el = document.querySelector("#sid_bridge input");
-                attempts++;
-                if (el) {
-                    const sid = getCookie("entil_sid");
-                    el.value = sid ? sid : "NO_COOKIE";
-                    // This triggers the Python on_value
-                    el.dispatchEvent(new Event('input', { bubbles: true }));
-                    clearInterval(checkExist);
-                } else if (attempts > 50) { // Stop after 5 seconds
-                    clearInterval(checkExist);
-                }
-            }, 100); 
-        })();
-    """)
-
-    # Put the bridge in a container but keep it hidden
-    with solara.Column(style={"display": "none"}):
-        solara.InputText(
-            label="bridge", 
-            value=bridged_sid, 
-            on_value=set_bridged_sid,
-            attributes={"id": "sid_bridge"}
-        )
+    # Built-in Solara session ID (stable across refreshes)
+    sid = solara.get_session_id()
 
     def recover():
-        if not bridged_sid:
-            return 
-
-        print(f"--- BRIDGE HANDSHAKE: Received '{bridged_sid}' ---")
-
-        if bridged_sid == "NO_COOKIE":
-            print("No cookie found in browser.")
+        if current_user.value is not None:
             is_checking_session.set(False)
-        else:
-            # THIS IS WHERE YOUR PRINT STARTS
-            user_info = resolve_session(bridged_sid) 
-            if user_info:
-                current_user.set(user_info)
-                current_session_id.set(bridged_sid)
-                print(f"User {user_info['email']} restored successfully.")
-            is_checking_session.set(False)
+            return
 
-    solara.use_effect(recover, [bridged_sid])
+        user_info = resolve_session(sid)
+        if user_info:
+            current_user.set(user_info)
+            current_session_id.set(sid)
+        
+        is_checking_session.set(False)
+
+    solara.use_effect(recover, [])
     return solara.Div(style={"display": "none"})
 
 
@@ -127,18 +88,14 @@ def LoginScreen():
 
             if user_info and "error" not in user_info:
                 sync_user_to_db(user_info['email'])
-                sid = create_session(user_info)
-                if sid:
+                sid = solara.get_session_id() # Get the Solara SID
+                created_sid = create_session(user_info, sid) # Store it in DB
+                
+                if created_sid:
                     current_user.set(user_info)
-                    if current_role.value == "admin":
-                        current_view.set("admin") 
-                    else:
-                        current_view.set("dashboard")
-                    # Write cookie and clean URL
-                    solara.HTML(tag="script", unsafe_innerHTML=f"""
-                        document.cookie = 'entil_sid={sid}; max-age=604800; path=/; SameSite=Lax';
-                        window.location.href = '/';
-                    """)
+                    current_session_id.set(sid)
+                    # Solara manages the session cookie
+                    solara.HTML(tag="script", unsafe_innerHTML="window.location.href = '/';")
 
     solara.use_effect(handle_oauth, [auth_code])
     
@@ -229,10 +186,12 @@ def DashboardScreen():
                 
                 # Logout logic
                 def handle_logout():    
-                    if current_session_id.value:
+                    sid = current_session_id.value
+                    if sid:
                         db = SessionLocal()
                         try:
-                            db.query(UserSession).filter(UserSession.session_id == current_session_id.value).delete()
+                            # Remove the session from your Azure DB
+                            db.query(UserSession).filter(UserSession.session_id == sid).delete()
                             db.commit()
                         finally:
                             db.close()
@@ -240,15 +199,15 @@ def DashboardScreen():
                     # Wipe Python App State
                     current_user.set(None)
                     current_session_id.set(None)
+                    current_role.set("user")
                     selected_article_data.set(None)
                     
-                    # Redirect to the login screen
+                    # Redirect and Clear
                     current_view.set("login")
-                    show_logout_confirm.set(False)
-                    show_delete_confirm.set(False)
+                    solara.routing.router.push("/")
                     
-                    # Force a clean URL
-                    router.push("/")
+                    # Solara session reset
+                    solara.HTML(tag="script", unsafe_innerHTML="window.location.href = '/';")
 
                 with solara.Column(style={"margin-top": "auto", "padding": "10px", "background-color": "transparent"}):
                     if not show_logout_confirm.value:
@@ -566,7 +525,7 @@ def AdminPage():
     s = {
         "page_container": {
             "padding": "clamp(15px, 3vw, 40px)", 
-            "background-color": "#113F67", 
+            "background-color": "#FADA7A", 
             "min-height": "100vh",
             "animation": "slideDown 0.8s cubic-bezier(0.16, 1, 0.3, 1);"
         },
@@ -621,27 +580,28 @@ def AdminPage():
             delete_confirm_id.set(None)
 
     def handle_logout():
+        sid = solara.get_session_id()
+        db = SessionLocal()
+        try:
+            db.query(UserSession).filter(UserSession.session_id == sid).delete()
+            db.commit()
+        finally:
+            db.close()
+
         current_user.set(None)
         current_role.set("user")
-        solara.HTML(tag="script", unsafe_innerHTML="document.cookie = 'entil_sid=; max-age=0; path=/;'; window.location.href = '/';")
+        # Hard redirect to ensure a fresh session is started
+        solara.HTML(tag="script", unsafe_innerHTML="window.location.href = '/';")
 
     # UI LAYOUT
     with solara.Column(style=s["page_container"]):
         # Header Section 
-        with solara.Row(justify="space-between", style={"background-color": "transparent", "align-items": "center", "margin-bottom": "30px", "gap": "20px"}):
-            solara.Text("EntiLytics Admin Console", classes=["space-mono-bold"], 
-                        style={"font-size": "clamp(1.5rem, 5vw, 2.5rem)", "color": "#FADA7A"})
-            
-            with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent", "flex-wrap": "wrap"}):
-                solara.Button("View Dashboard", on_click=lambda: current_view.set("dashboard"), classes=["push-button", "toggle-btn", "roboto-mono-regular"])
-                
-                if not show_logout_confirm.value:
-                    solara.Button("Logout", on_click=lambda: show_logout_confirm.set(True), classes=["push-button", "red-btn", "roboto-mono-regular"])
-                else:
-                    with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
-                        solara.Text("Confirm?", classes=["roboto-mono-medium"], style={"color": "#3674B5", "font-size": "0.9rem"})
-                        solara.Button("Yes", on_click=handle_logout, classes=["push-button", "red-btn"])
-                        solara.Button("No", on_click=lambda: show_logout_confirm.set(False), text=True, classes=["push-button", "toggle-btn"], style={"color": "#3674B5"})
+        with solara.Row(style={"background-color": "transparent", "margin-bottom": "30px"}):
+            solara.HTML(unsafe_innerHTML="""
+                    <div style="text-align: center;">
+                        <span class='space-mono-bold admin-title' style="color:#1C6EA4;">Enti</span><span class='space-mono-bold admin-title' style="color:#578FCA;">Lytics</span>
+                    </div>
+                """)
 
         # Main Management Container
         with solara.Div(style=s["main_card"]):
@@ -728,3 +688,22 @@ def AdminPage():
                                                 "margin-top": "2px"   
                                             }
                                         )
+        # Navigation Buttons
+        with solara.Row(justify="end", style={"gap": "15px", "align-items": "center", "background-color": "transparent", "margin-top": "25px", "width": "100%"}):
+            solara.Button(
+                "View Dashboard", 
+                on_click=lambda: current_view.set("dashboard"), 
+                classes=["push-button", "toggle-btn", "roboto-mono-regular"]
+            )
+            
+            if not show_logout_confirm.value:
+                solara.Button(
+                    "Logout", 
+                    on_click=lambda: show_logout_confirm.set(True), 
+                    classes=["push-button", "red-btn", "roboto-mono-regular"]
+                )
+            else:
+                with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
+                    solara.Text("Confirm?", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "font-size": "0.9rem"})
+                    solara.Button("Yes", on_click=handle_logout, classes=["push-button", "red-btn"])
+                    solara.Button("No", on_click=lambda: show_logout_confirm.set(False), text=True, classes=["push-button", "toggle-btn"], style={"color": "#3674B5"})

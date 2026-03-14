@@ -37,4 +37,4 @@ selected_article_data = solara.reactive(None)
 rss_feed_results = solara.reactive([]) # Stores the list of titles/dates
 
 # Session check gate
-is_checking_session = solara.reactive(True)
+is_checking_session = solara.reactive(False)
