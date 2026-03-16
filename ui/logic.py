@@ -53,6 +53,7 @@ def analyze_article(article):
             "original-text": clean_text,
             "summary": summary['summary'],
             "graph": graph_html,
+            "all_entities": entities,
             "rankings": rankings
         })
     finally:
@@ -142,7 +143,7 @@ def save_to_azure(data_dict, user_notes):
         
         rankings_list = data_dict.get('rankings', [])
         # Extract just names for the bubbles section of the UI
-        all_entity_names = [e['name'] for e in rankings_list]
+        all_entity_names = data_dict.get('all_entities', [])
         
         existing_result = db.query(AnalysisResult).filter(AnalysisResult.articleid == article_id).first()
         
@@ -204,6 +205,7 @@ def display_historical_analysis(article_id):
                 "summary": summary.summarytext,
                 # Graph HTML and Rankings must be parsed from JSON strings
                 "graph": result.graph_html if result else "",
+                "all_entities": json.loads(result.entities_all_json) if result and result.entities_all_json else [],
                 "rankings": json.loads(result.rankings_json) if result and result.rankings_json else []
             }
             

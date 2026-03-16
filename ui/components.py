@@ -308,7 +308,7 @@ def DashboardScreen():
                             # Extracted Entities (Raw BiLSTM list)
                             with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
                                 solara.Text("Extracted Entities", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.75rem", "display": "block", "font-size": "1rem"})
-                                all_names = [e['name'] for e in data['rankings']]
+                                all_names = [e['text'] for e in data['all_entities']]
                                 with solara.Row(style={"flex-wrap": "wrap", "gap": "0.5rem"}):
                                     for name in all_names:
                                         solara.Div(name, classes=["roboto-mono-regular"], style={"padding": "0.25rem 0.6rem", "border": "1px solid #DDD", "border-radius": "1rem", "font-size": "0.75rem", "background": "#F9F9F9"})
