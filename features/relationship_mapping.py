@@ -66,7 +66,7 @@ def mapping(article, entities):
                     graph.add_edge(u, v, weight=1, evidence=[clean_s])
 
     # Interactive Visualization using PyVis
-    net = Network(height="100%", width="100%", bgcolor="white", font_color="#1C6EA4", notebook=True, cdn_resources='remote')
+    net = Network(height="100%", width="100%", bgcolor="white", font_color="#ffffff", notebook=True, cdn_resources='remote')
     # net.from_nx(graph) automatic creation with default style 
 
     # Force the nodes to spread out neatly
@@ -80,7 +80,7 @@ def mapping(article, entities):
     # (ID, Visible text, Shows when hovered, Color of the circle)
     for entity in entities:
         node_evidence = "Occurrences:\n" + "\n\n".join(entity_sentences[entity])
-        net.add_node(entity, label=entity, title=node_evidence, color="#FADA7A", shape="box", font={'size': 25, 'face': 'Roboto Mono', 'color': '#1C6EA4'})
+        net.add_node(entity, label=entity, title=node_evidence, color="#1C6EA4", shape="box", font={'size': 25, 'face': 'Roboto Mono', 'color': '#ffffff'})
 
     # Iterate through the NetworkX edges to build the Pyvis map
     for u, v, data in graph.edges(data=True): # True gives the custom attributes from graph
@@ -99,7 +99,7 @@ def mapping(article, entities):
         net.add_edge(u, v, 
                     value=2,
                     title=hover_text,      
-                    color="#1C6EA4")
+                    color="#113F67")
 
     # Generate the html string
     html_string = net.generate_html() 
