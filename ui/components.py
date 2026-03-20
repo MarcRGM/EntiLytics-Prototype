@@ -166,13 +166,7 @@ def DashboardScreen():
                         label="Search articles...", 
                         value=sidebar_search, 
                         continuous_update=True,
-                        classes=["roboto-mono-regular"],
-                        style={
-                            "background-color": "white", 
-                            "border-radius": "4px",
-                            "padding": "15px",
-                            "color": "white"
-                        }
+                        classes=["roboto-mono-light", "input"],
                     )
 
                 # Fetch titles using current_user and refresh on save_status change
@@ -412,14 +406,14 @@ def DashboardScreen():
                         solara.Error(error_message.value)
 
                     if input_mode.value == "manual":
-                        solara.InputText("News Title", value=news_title, style={"width": "100%"})
-                        solara.InputText("Description (Article Content)", value=news_description, style={"width": "100%"})
+                        solara.InputText("News Title", value=news_title, style={"width": "100%"}, classes=["roboto-mono-light", "input"])
+                        solara.InputText("Description (Article Content)", value=news_description, style={"width": "100%"},  classes=["roboto-mono-light", "input"])
                     else:
                         # RSS Input field
-                        solara.InputText("Paste RSS Feed URL", value=rss_link, style={"width": "100%"})
+                        solara.InputText("Paste RSS Feed URL", value=rss_link, style={"width": "100%"}, classes=["roboto-mono-light", "input"])
 
                     # Action Buttons Row
-                    with solara.Row(classes=["form-action-row"], style={"background-color": "transparent", "justify-content": "center"}):
+                    with solara.Row(classes=["form-action-row"], style={"background-color": "transparent", "justify-content": "center", "padding-top": "5px"}):
                         if input_mode.value == "manual":
                             # Run NLP analysis
                             solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium", "form-btn-text"], 

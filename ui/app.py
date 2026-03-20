@@ -98,6 +98,23 @@ def Page():
         .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .help-btn:hover { color: #578FCA !important; }
                  
+        .input {
+            line-height: 28px;
+            padding: 1rem;
+            width: 100%;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            outline: none;
+            background-color: #fdfdfd;
+            box-shadow: 0 0.4rem #eee;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+                 
+        .input:hover {
+            transform: translateY(-6px);
+            box-shadow: 0 0.8rem #eee;
+        }
+
         .info-container {
             background: #fbfbfb;
             padding: 20px;
@@ -155,7 +172,7 @@ def Page():
         /* Toggle Button */
         .segmented-control .v-btn-toggle { background-color: #f0f0f0 !important; border-radius: 12px !important; padding: 4px !important; border: none !important; }
         .segmented-control .v-btn { border-radius: 12px !important; text-transform: none !important; font-family: 'Roboto Mono', monospace !important; letter-spacing: 0 !important; border: none !important; color: #666 !important; }
-        .segmented-control .v-btn--active { background-color: #3674B5 !important; color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; }
+        .segmented-control .v-btn--active { background-color: #113F67 !important; color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; }
                  
         /* Custom Modal CSS */
         .modal-overlay { position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */}
