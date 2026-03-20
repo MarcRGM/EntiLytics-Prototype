@@ -115,11 +115,29 @@ def LoginScreen():
                     </div>
                 """)
                 solara.Button(label="Continue with Google", icon_name="mdi-google", href=get_google_login_url(), classes=["push-button", "google-auth", "login-btn"])
-                solara.HTML(unsafe_innerHTML="""
-                    <div class='roboto-mono-regular login-terms' style="text-align: center; color: #777; margin-top: 10px;">
-                        By continuing, you agree to EntiLytics' terms. 
-                    </div>
-                """)
+                with solara.Column(
+                    classes=['roboto-mono-regular', 'login-terms'], 
+                    style={"background-color": "transparent", "text-align": "center", "color": "#777", "margin-top": "10px", "gap": "4px", "padding": "0 20px", "line-height": "1.5"}
+                ):
+                    solara.Text("By continuing, you agree to EntiLytics'", style={"display": "inline"})
+                    solara.Button(
+                        label="terms", 
+                        on_click=lambda: show_help_modal.set(True),
+                        text=True, 
+                        style={
+                            "color": "#1C6EA4", 
+                            "text-decoration": "underline", 
+                            "padding": "0", 
+                            "margin": "0",
+                            "min-width": "unset", 
+                            "height": "auto",
+                            "text-transform": "none",
+                            "vertical-align": "baseline",
+                            "display": "inline-block",
+                            "font-size": "inherit",
+                            "font-family": "inherit"
+                        }
+                    )
 
 
 # DASHBOARD SCREEN COMPONENT
