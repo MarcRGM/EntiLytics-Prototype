@@ -98,6 +98,20 @@ def Page():
         .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
         .help-btn:hover { color: #578FCA !important; }
                  
+        .info-container {
+            background: #fbfbfb;
+            padding: 20px;
+            border: 6px solid #1C6EA4;
+            box-shadow: 12px 12px 0 #1C6EA4;
+            margin-bottom: 35px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+                 
+        .info-container:hover {
+            transform: translate(-5px, -5px);
+            box-shadow: 17px 17px 0 #1C6EA4;
+        }
+                 
         .info-clamp-text {
             display: -webkit-box;
             -webkit-box-orient: vertical; 
@@ -112,6 +126,20 @@ def Page():
                  
         .info-clamp-text:hover {
             cursor: help;
+        }
+                 
+        .disclaimer-container {
+            background: #fbfbfb;
+            padding: 20px;
+            border: 6px solid #113F67;
+            box-shadow: 12px 12px 0 #113F67;
+            margin-bottom: 20px;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+                 
+        .disclaimer-container:hover {
+            transform: translate(-5px, -5px);
+            box-shadow: 17px 17px 0 #113F67;
         }
                  
         .disclaimer-text {

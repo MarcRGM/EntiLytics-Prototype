@@ -489,15 +489,9 @@ def DashboardScreen():
                     with solara.Div(style={"width": "100%", "max-width": "850px", "margin": "20px auto", "padding": "0 15px"}):
                         
                         # Usage
-                        with solara.Div(style={
-                            "background": "#fbfbfb", 
-                            "border-left": "3px solid #1C6EA4", 
-                            "padding": "15px", 
-                            "margin-bottom": "15px",
-                            "border-radius": "2px"
-                        }):
+                        with solara.Div(classes=["info-container"]):
                             solara.Text("System Information & Usage Guide", classes=["roboto-mono-medium"], 
-                                        style={"display": "block", "margin-bottom": "10px", "color": "#1C6EA4", "font-size": "12px", "text-transform": "uppercase"})
+                                        style={"display": "block", "margin-bottom": "10px", "color": "#1C6EA4", "font-size": "12px", "text-transform": "uppercase", "border-bottom": "2px solid #FADA7A"})
                             
                             with solara.Div(classes=["info-clamp-text"], style={"color": "#444"}):
                                 solara.HTML(unsafe_innerHTML="""
@@ -508,18 +502,13 @@ def DashboardScreen():
                                 """)
 
                         # Disclaimer
-                        with solara.Div(style={
-                            "background": "#fdfdfd", 
-                            "border-left": "3px solid #94a3b8", 
-                            "padding": "12px 15px", 
-                            "border-radius": "2px"
-                        }):
+                        with solara.Div(classes=["disclaimer-container"]):
                             with solara.Row(style={"align-items": "center", "margin-bottom": "8px", "background-color": "transparent", "gap": "8px"}):
-                                solara.v.Icon(children=["mdi-alert-circle-outline"], style_="color: #64748b; font-size: 12px;")
+                                solara.v.Icon(children=["mdi-alert-circle-outline"], style_="color: #113F67; font-size: 12px;")
                                 solara.Text("Content Disclaimer", classes=["roboto-mono-medium"], 
-                                            style={"color": "#475569","font-size": "12px", "text-transform": "uppercase"})
+                                            style={"color": "#113F67","font-size": "12px", "text-transform": "uppercase"})
                             
-                            with solara.Div(classes=["disclaimer-text"], style={"color": "#64748b"}):
+                            with solara.Div(classes=["disclaimer-text"], style={"color": "#444"}):
                                 solara.HTML(unsafe_innerHTML="""
                                     EntiLytics analyzes the structure and entities of the text provided. It does not verify the accuracy of the content or detect misinformation and fake news. The system is designed for use with news articles and performs best on factual, entity-rich content. While the system will still process any text submitted, results may be less meaningful for non-news content such as opinions, fiction, or social media posts, as these may lack the named entities and structure the system is built around.
                                 """)
