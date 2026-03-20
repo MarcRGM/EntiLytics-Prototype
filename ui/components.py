@@ -692,7 +692,7 @@ def AdminPage():
         # Navigation Buttons
         with solara.Row(justify="end", style={"gap": "15px", "align-items": "center", "background-color": "transparent", "margin-top": "25px", "width": "100%"}):
             solara.Button(
-                "View Dashboard", 
+                "Dashboard", 
                 on_click=lambda: current_view.set("dashboard"), 
                 classes=["push-button", "toggle-btn", "roboto-mono-regular"]
             )
