@@ -33,9 +33,17 @@ def mapping(article, entities):
     # nltk handles periods in abbreviations (e.g., Dr. or Inc.)
     sentences = sent_tokenize(article)
     
+    # Track sentences for each individual entity
+    entity_sentences = {e: [] for e in entities}
+    
     for sentence in sentences:
         clean_s = sentence.strip() # Remove extra spaces/newlines
         if not clean_s: continue   # Skip empty strings
+
+        # Track individual entity occurrences for the "Node Click"
+        for e in entities:
+            if e.lower() in clean_s.lower():
+                entity_sentences[e].append(clean_s)
         
         # Add the entities that are found from the current sentence
         found = [e for e in entities if e.lower() in clean_s.lower()]
@@ -71,7 +79,8 @@ def mapping(article, entities):
     # Add nodes and the edge connecting them
     # (ID, Visible text, Shows when hovered, Color of the circle)
     for entity in entities:
-        net.add_node(entity, label=entity, title=entity, color="#FADA7A", shape="box", font={'size': 25, 'face': 'Roboto Mono', 'color': '#1C6EA4'})
+        node_evidence = "Occurrences:\n" + "\n\n".join(entity_sentences[entity])
+        net.add_node(entity, label=entity, title=node_evidence, color="#FADA7A", shape="box", font={'size': 25, 'face': 'Roboto Mono', 'color': '#1C6EA4'})
 
     # Iterate through the NetworkX edges to build the Pyvis map
     for u, v, data in graph.edges(data=True): # True gives the custom attributes from graph
@@ -126,7 +135,7 @@ def mapping(article, entities):
           if (params.nodes.length > 0) {
             var nodeData = nodes.get(params.nodes[0]);
             title = "Entity: " + nodeData.label;
-            content = "Detailed analysis for this entity is stored in the relationship connections. Click on the lines between nodes to see specific evidence.";
+            content = nodeData.title;
           } else if (params.edges.length > 0) {
             var edgeData = edges.get(params.edges[0]);
             var connection = nodes.get(edgeData.from).label + " & " + nodes.get(edgeData.to).label;
