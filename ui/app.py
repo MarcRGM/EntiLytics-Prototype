@@ -82,7 +82,7 @@ def Page():
         } 
         
         .workspace { width: 75%; height: 100vh; background-color: #FADA7A; flex-grow: 1; padding: 40px 60px; display: flex; flex-direction: column; align-items: center; overflow-y: auto; }
-        .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 15px; margin-top: 20px; padding: 10px; }
+        .form-container { width: 60%; min-width: 450px; display: flex; flex-direction: column; gap: 20px; margin-top: 20px; padding: 10px; }
         
         .workspace-title { font-size: clamp(2rem, 4vw + 1rem, 3rem) !important;  }
         

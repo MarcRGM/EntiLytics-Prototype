@@ -226,8 +226,9 @@ def DashboardScreen():
                         solara.Button(
                             "Log out", 
                             text=True, 
+                            icon_name="mdi-logout",
                             classes=["roboto-mono-medium", "sidebar-logout"], 
-                            style={"color": "white", "justify-content": "flex-start"}, 
+                            style={"color": "white", "justify-content": "flex-start", "gap": "8px"}, 
                             on_click=lambda: show_logout_confirm.set(True)
                         )
                     else:
@@ -276,7 +277,7 @@ def DashboardScreen():
                     
                     # Header Row 
                     with solara.Row(justify="space-between", style={"padding": "10px", "align-items": "center"}):
-                        solara.Button("← Back", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium"])
+                        solara.Button("Back", icon_name="mdi-arrow-left", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium"])
                         with solara.Div(classes=["segmented-control"]):
                             with solara.ToggleButtonsSingle(value=display_mode, mandatory=True):
                                 solara.Button("Summary", value="summary")
@@ -350,12 +351,12 @@ def DashboardScreen():
                     # Annotation Section 
                     with solara.Div(classes=["notes-section-container"]):
                         solara.Text("Notes", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.6rem", "display": "block", "font-size": "1rem"})
-                        with solara.Div(style={"font-size": "0.875rem"}):
+                        with solara.Div(style={"font-size": "0.875rem"}, classes=["roboto-mono-light"]):
                             solara.InputTextArea(
                                 label="Add annotations...", 
                                 value=notes_input, 
                                 rows=5, 
-                                continuous_update=True
+                                continuous_update=True,
                             )
                         with solara.Row(justify="end"):
                             solara.Button(
@@ -391,7 +392,9 @@ def DashboardScreen():
                                                 classes=["push-button", "toggle-btn", "roboto-mono-regular"],
                                                 style={"font-size": "1rem", "margin-bottom": "1rem"}
                                             )
-
+                        with solara.Row(justify="end"):
+                            solara.Button("Back", icon_name="mdi-arrow-left", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium"])
+                        
                         # Save status
                         if save_status.value == "success":
                             solara.Success("Analysis Saved", on_close=lambda: save_status.set(""))
@@ -407,13 +410,19 @@ def DashboardScreen():
 
                     if input_mode.value == "manual":
                         solara.InputText("News Title", value=news_title, style={"width": "100%"}, classes=["roboto-mono-light", "input"])
-                        solara.InputText("Description (Article Content)", value=news_description, style={"width": "100%"},  classes=["roboto-mono-light", "input"])
+                        with solara.Div(style={"width": "100%"}, classes=["roboto-mono-light", "input"]):
+                            solara.InputTextArea(
+                                label="Description (Article Content)", 
+                                value=news_description,
+                                rows=10, 
+                                continuous_update=True,
+                            )
                     else:
                         # RSS Input field
                         solara.InputText("Paste RSS Feed URL", value=rss_link, style={"width": "100%"}, classes=["roboto-mono-light", "input"])
 
                     # Action Buttons Row
-                    with solara.Row(classes=["form-action-row"], style={"background-color": "transparent", "justify-content": "center", "padding-top": "5px"}):
+                    with solara.Row(classes=["form-action-row"], style={"background-color": "transparent", "justify-content": "center"}):
                         if input_mode.value == "manual":
                             # Run NLP analysis
                             solara.Button("Run Analysis", classes=["push-button", "action-btn", "roboto-mono-medium", "form-btn-text"], 
@@ -460,7 +469,6 @@ def DashboardScreen():
                                 with solara.Column(style={"background-color": "transparent"}):
                                     solara.Text(article['title'], classes=["roboto-mono-medium"])
                                     solara.Text(article['published'], style={"font-size":"12px", "color":"#666"})
-                                
                                 solara.Button("Analyze Now", classes=["push-button", "action-btn", "analyze-btn"], 
                                             on_click=lambda a=article: analyze_article(a))
                     # Manual spacing
@@ -699,9 +707,11 @@ def AdminPage():
             
             if not show_logout_confirm.value:
                 solara.Button(
-                    "Logout", 
+                    "Log Out", 
+                    icon_name="mdi-logout",
                     on_click=lambda: show_logout_confirm.set(True), 
-                    classes=["push-button", "red-btn", "roboto-mono-regular"]
+                    classes=["push-button", "red-btn", "roboto-mono-regular"],
+                    style={"gap": "8px"}
                 )
             else:
                 with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
