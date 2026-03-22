@@ -115,6 +115,32 @@ def Page():
             box-shadow: 0 0.8rem #eee;
         }
 
+        .rss-info-header {
+            display: block;
+            color: #113F67;
+            margin-bottom: 0.75rem;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .rss-info-body {
+            display: -webkit-box;
+            -webkit-box-orient: vertical; 
+            color: #444;
+            line-height: 1.6;
+            font-size: clamp(10px, 1.1vw, 11.5px) !important;
+            text-align: justify;
+            hyphens: auto;
+            overflow: hidden;
+            cursor: help;
+            padding-right: 40px;
+        }
+
+        .rss-info-body b {
+            color: #1C6EA4;
+        }
+
         .info-container {
             background: #fbfbfb;
             padding: 20px;

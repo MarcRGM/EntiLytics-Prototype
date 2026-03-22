@@ -419,7 +419,30 @@ def DashboardScreen():
                             )
                     else:
                         # RSS Input field
-                        solara.InputText("Paste RSS Feed URL", value=rss_link, style={"width": "100%"}, classes=["roboto-mono-light", "input"])
+                        solara.InputText("RSS Feed URL", value=rss_link, style={"width": "100%"}, classes=["roboto-mono-light", "input"])
+                        
+                        # Info for RSS
+                        with solara.Div(classes=["input"]):
+                            with solara.Row(gap="12px", style={"align-items": "start", "flex-wrap": "nowrap"}):
+                                solara.v.Icon(
+                                    children=["mdi-rss-box"], 
+                                    style_="color: #1C6EA4; font-size: 24px; margin-top: -2px;"
+                                )
+                                
+                                with solara.Div(style={"width": "100%"}):
+                                    solara.Text("Understanding RSS Feeds", classes=["rss-info-header", "roboto-mono-medium"])
+                                    solara.HTML(tag="div", classes=["rss-info-body", "roboto-mono-regular"], unsafe_innerHTML="""
+                                        <b>What is it?</b> RSS is a standardized web feed that allows news websites to 
+                                        broadcast their latest articles in a machine-readable format.
+                                        <br><br>
+                                        <b>How to get it:</b> News sites typically provide an RSS link in their footer or 
+                                        navigation. When you click it, you will likely see a page of <b>XML code</b> 
+                                        (raw text). To use it here, simply <b>copy the URL</b> from your browser's 
+                                        address bar and paste it into the field above.
+                                        <br><br>
+                                        <i style="color: #444; font-size: 0.9em;">Note: Availability depends on the publisher. 
+                                        Some feeds may only provide short summaries rather than the full article text.</i>
+                                    """)
 
                     # Action Buttons Row
                     with solara.Row(classes=["form-action-row"], style={"background-color": "transparent", "justify-content": "center"}):
