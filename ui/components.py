@@ -25,18 +25,18 @@ from logic import (
 
 def display_help_button():
     # Help Button 
-    solara.Button(icon_name="mdi-help-circle-outline", classes=["help-btn"], on_click=lambda: show_help_modal.set(True))
+    solara.Button(icon_name="mdi-help-circle-outline", classes=["help-btn", "action-btn", "push-button"], on_click=lambda: show_help_modal.set(True))
 
     # Pop-Up Modal
     if show_help_modal.value:
         with solara.Div(classes=["modal-overlay"]):
             with solara.Div(classes=["modal-content"]):
-                solara.Text("About EntiLytics", classes=["space-mono-bold"], style={"font-size": "1.75rem", "color": "#1C6EA4", "border-bottom": "2px solid #FADA7A", "padding-bottom": "10px"})
+                solara.Text("About EntiLytics", classes=["space-mono-bold"], style={"font-size": "clamp(1.25rem, 0.54rem + 1.89vw, 1.75rem)", "color": "#1C6EA4", "border-bottom": "2px solid #FADA7A", "padding-bottom": "10px"})
                 
-                solara.Text("EntiLytics is a web-based news information management system that helps users understand English online news articles by automatically extracting entities, ranking their importance, mapping relationships, and generating entity‑focused extractive summaries using a pretrained BiLSTM NER model and a transformer-based ranking module.", classes=["roboto-mono-regular"], style={"color": "#444", "line-height": "1.6", "font-size": "1rem"})
+                solara.Text("EntiLytics is a web-based news information management system that helps users understand English online news articles by automatically extracting entities, ranking their importance, mapping relationships, and generating entity‑focused extractive summaries using a pretrained BiLSTM NER model and a transformer-based ranking module.", classes=["roboto-mono-regular"], style={"color": "#444", "line-height": "1.6", "font-size": "clamp(0.875rem, 0.69rem + 0.47vw, 1rem)"})
                 
-                solara.Text("Terms of Use", classes=["space-mono-bold"], style={"font-size": "1.25rem", "color": "#578FCA", "margin-top": "10px"})
-                solara.Text("By using this workspace, you agree that data processed on this platform is for academic and analytical purposes. User sessions are authenticated securely via Google OAuth 2.0.", classes=["roboto-mono-regular"], style={"color": "#666", "font-size": "0.875rem", "line-height": "1.5"})
+                solara.Text("Terms of Use", classes=["space-mono-bold"], style={"font-size": "clamp(1rem, 0.65rem + 0.94vw, 1.25rem)", "color": "#578FCA", "margin-top": "10px"})
+                solara.Text("By using this workspace, you agree that data processed on this platform is for academic and analytical purposes. User sessions are authenticated securely via Google OAuth 2.0.", classes=["roboto-mono-regular"], style={"color": "#666", "font-size": "clamp(0.75rem, 0.57rem + 0.29vw, 0.875rem)", "line-height": "1.5"})
                 
                 # Close Button
                 with solara.Row(justify="flex-end", style={"margin-top": "20px"}):
@@ -153,9 +153,9 @@ def DashboardScreen():
                     solara.Button(
                         icon_name="mdi-close", 
                         on_click=lambda: sidebar_open.set(False),
-                        classes=["mobile-close-btn"],
+                        classes=["mobile-close-btn", "toggle-btn", "push-button"],
                         text=True,
-                        style={"color": "white", "font-size": "1.5rem", "background-color": "transparent"}
+                        style={"color": "white", "margin-bottom": "auto", "display": "inline-flex", "font-size": "clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem)", "background-color": "transparent"}
                     )
                 
                 solara.Text("Saved Articles", classes=["roboto-mono-medium", "sidebar-title"], style={"color": "white", "border-bottom": "2px solid white", "padding-bottom": "15px", "margin-bottom": "15px"})
@@ -227,7 +227,7 @@ def DashboardScreen():
                             "Log out", 
                             text=True, 
                             icon_name="mdi-logout",
-                            classes=["roboto-mono-medium", "sidebar-logout"], 
+                            classes=["roboto-mono-medium", "sidebar-logout", "toggle-btn", "push-button"], 
                             style={"color": "white", "justify-content": "flex-start", "gap": "8px"}, 
                             on_click=lambda: show_logout_confirm.set(True)
                         )
@@ -252,13 +252,13 @@ def DashboardScreen():
         # Right Workspace
         with solara.Div(classes=["workspace"], style={"position": "relative"}):
             # Hamburger Menu
-            solara.Button(icon_name="mdi-menu", classes=["menu-btn"], on_click=lambda: sidebar_open.set(not sidebar_open.value))
+            solara.Button(icon_name="mdi-menu", classes=["menu-btn", "toggle-btn", "push-button"], on_click=lambda: sidebar_open.set(not sidebar_open.value))
 
             display_help_button()
 
             # Header
             solara.HTML(unsafe_innerHTML="""
-                <div style="text-align: center; width: 100%; margin-bottom: 20px;">
+                <div class='workspace-title-container' style="text-align: center; width: 100%; margin-bottom: 20px;">
                     <span class='space-mono-bold workspace-title' style="color:#1C6EA4;">Enti</span><span class='space-mono-bold workspace-title' style="color:#578FCA;">Lytics</span>
                     <p class='roboto-mono-medium workspace-subtitle' style="color: #666; margin-top: -10px;">Workspace</p>
                 </div>
@@ -289,19 +289,19 @@ def DashboardScreen():
                         # Content
                         with solara.Column(classes=["left-column-results"], style={"gap": "1.25rem"}):
                             with solara.Div(style={"background": "white", "padding": "1.5rem", "border-radius": "0.12px", "box-shadow": "0 4px 6px rgba(0,0,0,0.05)"}):
-                                solara.Text(data['title'], classes=["roboto-mono-regular"], style={"font-size": "1.5rem", "font-weight": "bold", "margin-bottom": "1rem", "display": "block"})
+                                solara.Text(data['title'], classes=["roboto-mono-regular"], style={"font-size": "clamp(1.125rem, 1.05rem + 0.375vw, 1.5rem)", "font-weight": "bold", "margin-bottom": "1rem", "display": "block"})
                                 
                                 if display_mode.value == "summary":
                                     # Manhattan-distance based extractive summary
-                                    solara.Text(data['summary'], classes=["roboto-mono-light"], style={"text-align": "justify", "display": "block", "white-space": "pre-wrap", "line-height": "1.6", "font-size": "1rem"}) 
+                                    solara.Text(data['summary'], classes=["roboto-mono-light"], style={"text-align": "justify", "display": "block", "white-space": "pre-wrap", "line-height": "1.6", "font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)"}) 
                                 else:
-                                    solara.Text(data['original-text'], classes=["roboto-mono-light"], style={"text-align": "justify", "display": "block", "white-space": "pre-wrap", "line-height": "1.6", "font-size": "1rem"})
+                                    solara.Text(data['original-text'], classes=["roboto-mono-light"], style={"text-align": "justify", "display": "block", "white-space": "pre-wrap", "line-height": "1.6", "font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)"})
 
                         # Analytics
                         with solara.Column(classes=["right-column-analytics"], style={"gap": "1.25rem"}):
                             # Top Entities (Manhattan Distance Ranking)
                             with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
-                                solara.Text("Top Entities (Ranked)", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "1rem", "display": "block", "font-size": "1.1rem"})
+                                solara.Text("Top Entities (Ranked)", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "1rem", "display": "block", "font-size": "clamp(0.9rem, 0.86rem + 0.2vw, 1.1rem)"})
                                 
                                 for item in data['rankings'][:8]: 
                                     # Calculation: Lower distance = higher importance (1.0 - dist)
@@ -309,8 +309,8 @@ def DashboardScreen():
                                     
                                     with solara.Column(style={"margin-bottom": "0.75rem"}):
                                         with solara.Row(justify="space-between", style={"align-items": "center"}):
-                                            solara.Text(item['name'], classes=["roboto-mono-regular"], style={"font-size": "0.875rem"})
-                                            solara.Text(f"Dist: {item['distance']:.2f}", style={"color": "#578FCA", "font-size": "0.75rem"})
+                                            solara.Text(item['name'], classes=["roboto-mono-regular"], style={"font-size": "clamp(0.75rem, 0.725rem + 0.125vw, 0.875rem)"})
+                                            solara.Text(f"Dist: {item['distance']:.2f}", style={"color": "#578FCA", "font-size": "clamp(0.6875rem, 0.675rem + 0.0625vw, 0.75rem)"})
                                         
                                         solara.ProgressLinear(
                                             value=importance_percent, 
@@ -320,17 +320,17 @@ def DashboardScreen():
 
                             # Extracted Entities (Raw BiLSTM list)
                             with solara.Div(style={"background": "white", "padding": "1.25rem", "border-radius": "0.12px"}):
-                                solara.Text("Extracted Entities", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.75rem", "display": "block", "font-size": "1rem"})
+                                solara.Text("Extracted Entities", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.75rem", "display": "block", "font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)"})
                                 all_names = [e['text'] for e in data['all_entities']]
                                 with solara.Row(style={"flex-wrap": "wrap", "gap": "0.5rem"}):
                                     for name in all_names:
-                                        solara.Div(name, classes=["roboto-mono-regular"], style={"padding": "0.25rem 0.6rem", "border": "1px solid #DDD", "border-radius": "1rem", "font-size": "0.75rem", "background": "#F9F9F9"})
+                                        solara.Div(name, classes=["roboto-mono-regular"], style={"padding": "0.25rem 0.6rem", "border": "1px solid #DDD", "border-radius": "1rem", "font-size": "clamp(0.6875rem, 0.675rem + 0.0625vw, 0.75rem)", "background": "#F9F9F9"})
                                         
                 # Relationship Map and Notes (Outside the Grid)
                 with solara.Column(style={"gap": "1.25rem", "padding": "20px", "width": "100%"}):
                     # Relationship Map
                     with solara.Div(classes=["relationship-map-container"]):
-                        solara.Text("Entity Relationship Network", classes=["roboto-mono-medium"], style={"margin-bottom": "0.6rem", "display": "block", "font-size": "1.1rem"})
+                        solara.Text("Entity Relationship Network", classes=["roboto-mono-medium"], style={"margin-bottom": "0.6rem", "display": "block", "font-size": "clamp(0.9rem, 0.86rem + 0.2vw, 1.1rem)"})
                         
                         solara.Text(
                             "Click connection lines to view shared context between entities (if applicable).", 
@@ -350,8 +350,8 @@ def DashboardScreen():
                             
                     # Annotation Section 
                     with solara.Div(classes=["notes-section-container"]):
-                        solara.Text("Notes", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.6rem", "display": "block", "font-size": "1rem"})
-                        with solara.Div(style={"font-size": "0.875rem"}, classes=["roboto-mono-light"]):
+                        solara.Text("Notes", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "margin-bottom": "0.6rem", "display": "block", "font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)"})
+                        with solara.Div(style={"font-size": "clamp(0.75rem, 0.725rem + 0.125vw, 0.875rem)"}, classes=["roboto-mono-light"]):
                             solara.InputTextArea(
                                 label="Add annotations...", 
                                 value=notes_input, 
@@ -362,7 +362,7 @@ def DashboardScreen():
                             solara.Button(
                                 "Save Analysis", 
                                 classes=["push-button", "action-btn", "roboto-mono-regular"], 
-                                style={"margin-top": "1rem", "margin-bottom": "1rem", "font-size": "1rem", "align-item": "center"},
+                                style={"margin-top": "1rem", "margin-bottom": "1rem", "font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)", "align-item": "center"},
                                 on_click=lambda: save_to_azure(selected_article_data.value, notes_input.value),
                             )
                         with solara.Row(justify="end"):
@@ -374,7 +374,7 @@ def DashboardScreen():
                                             icon_name="mdi-delete",
                                             on_click=lambda: show_delete_confirm.set(True),
                                             classes=["push-button", "red-btn", "roboto-mono-regular"],
-                                            style={"font-size": "1rem", "margin-bottom": "1rem"},
+                                            style={"font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)", "margin-bottom": "1rem"},
                                         )
                                 else:
                                     with solara.Div(classes=["logout-confirm-container"]):
@@ -390,7 +390,7 @@ def DashboardScreen():
                                                 on_click=lambda: show_delete_confirm.set(False), 
                                                 text=True,
                                                 classes=["push-button", "toggle-btn", "roboto-mono-regular"],
-                                                style={"font-size": "1rem", "margin-bottom": "1rem"}
+                                                style={"font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)", "margin-bottom": "1rem"}
                                             )
                         with solara.Row(justify="end"):
                             solara.Button("Back", icon_name="mdi-arrow-left", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium"])
@@ -490,9 +490,9 @@ def DashboardScreen():
                         for article in paginated_articles:
                             with solara.Div(classes=["rss-item-row"], style={"padding":"15px", "display":"flex", "justify-content":"space-between", "align-items":"center"}):
                                 with solara.Column(style={"background-color": "transparent"}):
-                                    solara.Text(article['title'], classes=["roboto-mono-medium"])
-                                    solara.Text(article['published'], style={"font-size":"12px", "color":"#666"})
-                                solara.Button("Analyze Now", classes=["push-button", "action-btn", "analyze-btn"], 
+                                    solara.Text(article['title'], classes=["roboto-mono-medium"], style={"font-size":"clamp(1rem, 0.975rem + 0.125vw, 1.125rem)"})
+                                    solara.Text(article['published'], style={"font-size":"clamp(0.625rem, 0.45rem + 0.47vw, 0.75rem)", "color":"#666"})
+                                solara.Button("Analyze Now", classes=["push-button", "action-btn", "analyze-btn"], style={"font-size": "clamp(0.875rem, 0.47vw + 0.7rem, 1rem)", "width": "fit-content"}, 
                                             on_click=lambda a=article: analyze_article(a))
                     # Manual spacing
                     solara.HTML(unsafe_innerHTML='<div style="height: 20px; width: 100%;"></div>')
@@ -516,7 +516,7 @@ def DashboardScreen():
                         # Usage
                         with solara.Div(classes=["info-container"]):
                             solara.Text("System Information & Usage Guide", classes=["roboto-mono-medium"], 
-                                        style={"display": "block", "margin-bottom": "10px", "color": "#1C6EA4", "font-size": "12px", "text-transform": "uppercase", "border-bottom": "2px solid #FADA7A"})
+                                        style={"display": "block", "margin-bottom": "10px", "color": "#1C6EA4", "font-size": "16px", "text-transform": "uppercase", "border-bottom": "2px solid #FADA7A"})
                             
                             with solara.Div(classes=["info-clamp-text"], style={"color": "#444"}):
                                 solara.HTML(unsafe_innerHTML="""
@@ -529,11 +529,11 @@ def DashboardScreen():
                         # Disclaimer
                         with solara.Div(classes=["disclaimer-container"]):
                             with solara.Row(style={"align-items": "center", "margin-bottom": "8px", "background-color": "transparent", "gap": "8px"}):
-                                solara.v.Icon(children=["mdi-alert-circle-outline"], style_="color: #113F67; font-size: 12px;")
+                                solara.v.Icon(children=["mdi-alert-circle-outline"], style_="color: #fbfbfb; font-size: 13px;")
                                 solara.Text("Content Disclaimer", classes=["roboto-mono-medium"], 
-                                            style={"color": "#113F67","font-size": "12px", "text-transform": "uppercase"})
+                                            style={"color": "#fbfbfb","font-size": "14px", "text-transform": "uppercase"})
                             
-                            with solara.Div(classes=["disclaimer-text"], style={"color": "#444"}):
+                            with solara.Div(classes=["disclaimer-text"], style={"color": "#fbfbfb"}):
                                 solara.HTML(unsafe_innerHTML="""
                                     EntiLytics analyzes the structure and entities of the text provided. It does not verify the accuracy of the content or detect misinformation and fake news. The system is designed for use with news articles and performs best on factual, entity-rich content. While the system will still process any text submitted, results may be less meaningful for non-news content such as opinions, fiction, or social media posts, as these may lack the named entities and structure the system is built around.
                                 """)
@@ -658,11 +658,11 @@ def AdminPage():
                         
                         # Role Badge
                         solara.Text(user.account_role.upper(), classes=["roboto-mono-regular"], 
-                                    style={"width": "80px", "color": "#3674B5" if is_admin else "#666", "font-size": "0.75rem"})
+                                    style={"width": "80px", "color": "#3674B5" if is_admin else "#666", "font-size": "clamp(0.6875rem, 0.675rem + 0.0625vw, 0.75rem)"})
                         
                         solara.Button("Activity", 
                                       on_click=lambda uid=user.accountid: selected_user_id.set(uid if selected_user_id.value != uid else None), 
-                                      text=True, style={"color": "#3674B5", "font-size": "0.8rem"})
+                                      text=True, style={"color": "#3674B5", "font-size": "clamp(0.6875rem, 0.675rem + 0.0625vw, 0.75rem)"})
                         
                         solara.Div(style={"flex-grow": "1"})
                         
@@ -685,7 +685,7 @@ def AdminPage():
                         with solara.Column(style=s["activity_box"]):
                             if not activity_data:
                                 solara.Text("No historical activity found.", 
-                                            style={"font-size": "0.8rem", "font-style": "italic", "color": "#888"})
+                                            style={"font-size": "clamp(0.6875rem, 0.675rem + 0.0625vw, 0.75rem)", "font-style": "italic", "color": "#888"})
                             else:
                                 for title, date_created in activity_data:
                                     display_date = date_created.strftime("%b %d, %Y") if date_created else "---"
@@ -738,6 +738,6 @@ def AdminPage():
                 )
             else:
                 with solara.Row(style={"gap": "10px", "align-items": "center", "background-color": "transparent"}):
-                    solara.Text("Confirm?", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "font-size": "0.9rem"})
+                    solara.Text("Confirm?", classes=["roboto-mono-medium"], style={"color": "#1C6EA4", "font-size": "clamp(0.75rem, 0.725rem + 0.125vw, 0.875rem)"})
                     solara.Button("Yes", on_click=handle_logout, classes=["push-button", "red-btn"])
                     solara.Button("No", on_click=lambda: show_logout_confirm.set(False), text=True, classes=["push-button", "toggle-btn"], style={"color": "#3674B5"})

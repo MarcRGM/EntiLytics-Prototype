@@ -30,7 +30,7 @@ def Page():
         .roboto-mono-regular { font-family: "Roboto Mono", monospace; font-weight: 400; }
         .roboto-mono-medium { font-family: "Roboto Mono", monospace; font-weight: 500; }
         
-        .push-button { border: none !important; border-radius: 8px !important; padding: 10px 20px !important; transition: none !important; text-transform: none !important; cursor: pointer; position: relative; top: 0; }
+        .push-button { font-size: clamp(0.875rem, 0.47vw + 0.7rem, 1rem) !important; border: none !important; border-radius: 8px !important; padding: 10px 20px !important; transition: none !important; text-transform: none !important; cursor: pointer; position: relative; top: 0; }
         .push-button:active { transform: translateY(6px) !important; box-shadow: none !important; } 
         
         .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #113F67 !important; border: 1px solid #113F67 !important; }
@@ -67,6 +67,7 @@ def Page():
         }
         .sidebar-logout { 
             font-size: clamp(0.875rem, 0.47vw + 0.7rem, 1rem) !important; 
+            width: fit-content;
         }    
                  
         .sidebar-logout-pad {
@@ -92,11 +93,9 @@ def Page():
 
         .form-btn-text { font-size: clamp(0.75rem, 2vw + 0.4rem, 1rem) !important; }
 
-        .menu-btn { position: absolute !important; top: 30px; left: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
-        .menu-btn:hover { color: #578FCA !important; }
+        .menu-btn { position: absolute !important; top: 30px; left: 30px; }
                  
-        .help-btn { position: absolute !important; top: 30px; right: 30px; background-color: transparent !important; color: #1C6EA4 !important; font-size: 1.75rem !important; min-width: 0 !important; padding: 0 !important; box-shadow: none !important; }
-        .help-btn:hover { color: #578FCA !important; }
+        .help-btn { position: absolute !important; top: 30px; right: 30px;}
                  
         .input {
             line-height: 28px;
@@ -119,7 +118,7 @@ def Page():
             display: block;
             color: #113F67;
             margin-bottom: 0.75rem;
-            font-size: 12px;
+            font-size: 14px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -128,8 +127,8 @@ def Page():
             display: -webkit-box;
             -webkit-box-orient: vertical; 
             color: #444;
-            line-height: 1.6;
-            font-size: clamp(10px, 1.1vw, 11.5px) !important;
+            line-height: 1.5;
+            font-size: clamp(11px, 1.1vw, 12px) !important;
             text-align: justify;
             hyphens: auto;
             overflow: hidden;
@@ -144,15 +143,15 @@ def Page():
         .info-container {
             background: #fbfbfb;
             padding: 20px;
-            border: 6px solid #1C6EA4;
-            box-shadow: 12px 12px 0 #1C6EA4;
+            border: 6px solid #113F67;
+            box-shadow: 12px 12px 0 #113F67;
             margin-bottom: 35px;
             transition: transform 0.3s, box-shadow 0.3s;
         }
                  
         .info-container:hover {
             transform: translate(-5px, -5px);
-            box-shadow: 17px 17px 0 #1C6EA4;
+            box-shadow: 17px 17px 0 #113F67;
         }
                  
         .info-clamp-text {
@@ -164,7 +163,7 @@ def Page():
             hyphens: auto;
             color: #555;
             line-height: 1.6;
-            font-size: clamp(10px, 1.1vw, 11.5px) !important;
+            font-size: clamp(13px, 1.1vw, 14px) !important;
         }
                  
         .info-clamp-text:hover {
@@ -172,7 +171,7 @@ def Page():
         }
                  
         .disclaimer-container {
-            background: #fbfbfb;
+            background: #1C6EA4;
             padding: 20px;
             border: 6px solid #113F67;
             box-shadow: 12px 12px 0 #113F67;
@@ -186,23 +185,23 @@ def Page():
         }
                  
         .disclaimer-text {
-            font-size: clamp(10px, 1.1vw, 11px) !important;
+            font-size: clamp(11px, 1.1vw, 12px) !important;
             font-family: 'Roboto Mono', monospace;
             text-align: justify;
-            line-height: 1.6;
+            line-height: 1.5;
         }
 
         /* Hidden on desktop, shown on mobile */
-        .mobile-close-btn { display: none !important; }   
+        .mobile-close-btn { display: none !important;}   
                        
         /* Toggle Button */
         .segmented-control .v-btn-toggle { background-color: #f0f0f0 !important; border-radius: 12px !important; padding: 4px !important; border: none !important; }
         .segmented-control .v-btn { border-radius: 12px !important; text-transform: none !important; font-family: 'Roboto Mono', monospace !important; letter-spacing: 0 !important; border: none !important; color: #666 !important; }
         .segmented-control .v-btn--active { background-color: #113F67 !important; color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; }
-                 
+                          
         /* Custom Modal CSS */
         .modal-overlay { position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */}
-        .modal-content { background-color: #FFFFFF; padding: 40px;border-radius: 12px; width: 50%; min-width: 400px; max-width: 600px; border: 2px solid #1C6EA4; box-shadow: 0px 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto;}
+        .modal-content { background-color: #FFFFFF; padding: 40px;border-radius: 12px; width: 50%; min-width: 400px; max-width: 600px; border: 2px solid #1C6EA4; box-shadow: 0px 10px 30px rgba(0,0,0,0.2); display: flex; flex-direction: column; gap: 20px; max-height: 80vh; overflow-y: auto; text-align: justify;}
         
         /* Using calc to account for the 20px gap */
         .left-column-results { 
@@ -222,7 +221,8 @@ def Page():
         }
         
         /* RSS List Hover Effects */
-        .rss-item-row { transition: background-color 0.2s; border-radius: 12px; margin-bottom: 5px; } .rss-item-row:hover { background-color: rgba(28, 110, 164, 0.1) !important; }
+        .rss-item-row { transition: background-color 0.2s; border-radius: 12px; margin-bottom: 5px; } 
+        .rss-item-row:hover { background-color: rgba(28, 110, 164, 0.1) !important; }
         .analyze-btn { opacity: 0; transition: opacity 0.2s; }
         .rss-item-row:hover .analyze-btn { opacity: 1; }
                  
@@ -235,6 +235,10 @@ def Page():
             
             /* Adjust workspace to take up the remaining space */
             .workspace { width: 65%; padding: 30px 40px; }
+                 
+            .workspace-title-container {
+                margin-top: clamp(0px, 213.21px - 18.87vw, 60px);
+            }
             
             /* Make the form container wider to fit the smaller workspace */
             .form-container { width: 80%; min-width: unset; }
@@ -266,12 +270,21 @@ def Page():
                 max-width: 100% !important;
                 margin-bottom: 20px !important;
             }
+                 
+            .segmented-control .v-btn-toggle { padding: 3px !important;}
+            .segmented-control .v-btn .v-btn__content {
+                font-size: 12px !important;
+            }
         }
         
         /* MOBILE BEHAVIOR */
         @media (max-width: 600px) {
             /* Show close button inside sidebar */
             .mobile-close-btn { display: block !important; margin-bottom: 10px; }
+                 
+            .workspace-title-container {
+                margin-top: clamp(60px, 128.57px - 21.43vw, 80px);
+            }
                  
             /* Sidebar covers full screen */
             .sidebar { position: fixed; top: 0; left: 0; height: 100vh; width: 100vw; z-index: 2000; transition: transform 0.3s ease; }
@@ -287,6 +300,10 @@ def Page():
             /* Modal fits mobile screen */
             .modal-content { width: 92%; min-width: unset; padding: 20px; }
             
+            .segmented-control .v-btn-toggle { padding: 2px !important;}
+            .segmented-control .v-btn .v-btn__content {
+                font-size: 10px !important;
+            }
             
         }
     """)
