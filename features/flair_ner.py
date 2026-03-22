@@ -10,8 +10,10 @@ sys.dont_write_bytecode = True
 # This check runs once and is skipped on subsequent startups.
 try:
     nltk.data.find('corpora/wordnet')
+    nltk.data.find('taggers/averaged_perceptron_tagger_eng')
 except LookupError:
     nltk.download('wordnet', quiet=True)
+    nltk.download('averaged_perceptron_tagger_eng', quiet=True)
 
 # Load the ner-fast model: a BiLSTM NER model with a Softmax output layer.
 # This is the non-CRF alternative provided by Flair, suited for environments
@@ -51,7 +53,7 @@ def normalize_entity(text: str) -> str:
             res = lemmatizer.lemmatize(word.lower())
             normalized_words.append(res)
             
-    return " ".join(normalized_words).title()
+    return " ".join(normalized_words)
 
 
 def identify_entities(text: str) -> list:
