@@ -1,8 +1,9 @@
+import nltk
+import sys
 from flair.data import Sentence
 from flair.nn import Classifier
 from nltk.stem import WordNetLemmatizer
-import nltk
-import sys
+from nltk import pos_tag, word_tokenize
 sys.dont_write_bytecode = True
 
 # Download WordNet data if not already present on the current environment.
@@ -35,9 +36,22 @@ def normalize_entity(text: str) -> str:
     Returns:
         A title-cased string with each word reduced to its base form.
     """
-    words = text.split()
-    lemmatized = [lemmatizer.lemmatize(word.lower()) for word in words]
-    return " ".join(lemmatized).title()
+    # Tokenize and get Part-of-Speech tags
+    tokens = word_tokenize(text)
+    tagged_tokens = pos_tag(tokens)
+
+    normalized_words = []
+    for word, tag in tagged_tokens:
+        # Skip Proper Nouns (NNP/NNPS) to prevent stripping 's' from singular entities 
+        # (e.g., Philippines -> Philippine).
+        if tag in ['NNP', 'NNPS']:
+            normalized_words.append(word)
+        else:
+            # For common nouns/verbs, use lemmatization
+            res = lemmatizer.lemmatize(word.lower())
+            normalized_words.append(res)
+            
+    return " ".join(normalized_words).title()
 
 
 def identify_entities(text: str) -> list:
