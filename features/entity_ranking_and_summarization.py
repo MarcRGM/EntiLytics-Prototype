@@ -54,7 +54,7 @@ def entity_ranking(article_description, entity_list):
 
     Args:
         article_description: Full article text
-        top_entities: Top-ranked entity names from ranking
+        entity_list: List of NER outputs from identify_entities()
     
     Returns a list of dictionaries with name and score values (entities meeting distance threshold)              
     """
@@ -134,6 +134,13 @@ def generate_summary(article_description, top_entities):
             'sentence_count': len(sentences),
         }
     
+    # If there are no entities to focus on, return the original article
+    if not top_entities:
+        return {
+            'summary': article_description,
+            'sentence_count': len(sentences),
+        }
+
     # Create a single string of the top entity names
     entity_focus_string = ", ".join([ent['name'] for ent in top_entities])
 

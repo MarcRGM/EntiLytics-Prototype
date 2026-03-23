@@ -16,6 +16,11 @@ try:
 except LookupError:
     nltk.download('punkt_tab', quiet=True)
 
+def contains_entity(sentence: str, entity: str) -> bool:
+    # Match entity as a whole word/phrase, case-insensitive
+    pattern = r'\b' + re.escape(entity) + r'\b'
+    return re.search(pattern, sentence, flags=re.IGNORECASE) is not None
+
 def mapping(article, entities):
     # NetworkX Graph manages the logic and brain of the connections
     graph = nx.Graph()
@@ -27,11 +32,6 @@ def mapping(article, entities):
 
     # Split into sentences
     sentences = sent_tokenize(clean_text)
-
-
-    # Split by sentences to perform sentence-level analysis
-    # nltk handles periods in abbreviations (e.g., Dr. or Inc.)
-    sentences = sent_tokenize(article)
     
     # Track sentences for each individual entity
     entity_sentences = {e: [] for e in entities}
@@ -40,13 +40,13 @@ def mapping(article, entities):
         clean_s = sentence.strip() # Remove extra spaces/newlines
         if not clean_s: continue   # Skip empty strings
 
-        # Track individual entity occurrences for the "Node Click"
+        # Collect sentences where each entity appears
         for e in entities:
-            if e.lower() in clean_s.lower():
-                entity_sentences[e].append(clean_s)
+          if contains_entity(clean_s, e):
+              entity_sentences[e].append(clean_s)
         
         # Add the entities that are found from the current sentence
-        found = [e for e in entities if e.lower() in clean_s.lower()]
+        found = [e for e in entities if contains_entity(clean_s, e)]
         
         # Create connection if 2 or more entities appear
         if len(found) > 1:
@@ -84,14 +84,6 @@ def mapping(article, entities):
 
     # Iterate through the NetworkX edges to build the Pyvis map
     for u, v, data in graph.edges(data=True): # True gives the custom attributes from graph
-        # Wrap evidence text so it doesn't get cut off horizontally
-        # Break lines every 10 characters and replace newlines with HTML <br>
-        wrapped_evidence = []
-        for s in data['evidence']:
-            words = s.split()
-            chunks = [" ".join(words[i:i+10]) for i in range(0, len(words), 10)]
-            wrapped_evidence.append("\n".join(chunks))
-
         # title is an attribute Pyvis uses for the hover tooltip
         hover_text = "Found in:\n" + "\n".join(data['evidence'])
         

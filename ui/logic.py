@@ -3,6 +3,8 @@ sys.dont_write_bytecode = True
 
 import json
 import uuid
+import nltk
+from nltk.tokenize import sent_tokenize
 from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
@@ -18,6 +20,12 @@ from state import (
     error_message, news_title, news_description, rss_link,
     save_status, notes_input, is_checking_session
 )
+
+# nltk requirement
+try:
+    nltk.data.find('tokenizers/punkt_tab')
+except LookupError:
+    nltk.download('punkt_tab', quiet=True)
 
 
 def fetch_articles(rss_url):
@@ -62,31 +70,40 @@ def analyze_article(article):
 def handle_manual_analysis():
     # Reset error first
     error_message.set("")
+
+    title = news_title.value.strip()
+    desc = news_description.value.strip()
     
     # Requirement check for Title and Description
-    if not news_title.value.strip() and not news_description.value.strip():
-        error_message.set("News Title and Description (Article Content) are required for manual analysis.")
+    if not title or not desc:
+        error_message.set("Please provide both a news title and article content.")
         return
-    elif not news_title.value.strip():
-        error_message.set("News Title is required for manual analysis.")
-        return
-    elif not news_description.value.strip():
-        error_message.set("Description (Article Content) is required for analysis.")
+    
+    # require at least one sentence in the description
+    sentences = sent_tokenize(desc)
+    if len(sentences) == 0:
+        error_message.set("Please provide a description with at least one sentence.")
         return
 
     analyze_article({
-        'title': news_title.value, 
-        'description': news_description.value
+        'title': title, 
+        'description': desc
     })
 
 def handle_rss_fetch():
     error_message.set("")
+
+    url = rss_link.value.strip()
     
-    if not rss_link.value.strip():
+    if not url:
         error_message.set("Please provide a valid RSS Feed URL.")
         return
     
-    fetch_articles(rss_link.value)
+    if not (url.startswith("http://") or url.startswith("https://")):
+        error_message.set("RSS URL must start with http:// or https://")
+        return
+    
+    fetch_articles(url)
 
 def sync_user_to_db(email):
     """Ensures the Google user exists in the Azure Account table."""
