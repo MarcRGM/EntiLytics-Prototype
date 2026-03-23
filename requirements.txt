@@ -12,3 +12,4 @@ solara==1.57.3
 SQLAlchemy==2.0.48
 # torch==2.9.1  # installed separately in Dockerfile
 psycopg2-binary==2.9.9
+starlette==0.52.1
