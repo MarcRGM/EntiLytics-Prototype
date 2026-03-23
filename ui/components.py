@@ -554,6 +554,7 @@ def DashboardScreen():
                         )
 @solara.component
 def AdminPage():
+    solara.use_router().push("/")
     # Centralized Style Dictionary
     s = {
         "page_container": {
