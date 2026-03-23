@@ -143,7 +143,7 @@ def LoginScreen():
 # DASHBOARD SCREEN COMPONENT
 @solara.component
 def DashboardScreen():
-    router = solara.use_router()
+    solara.use_router().push("/")
     with solara.Div(classes=["dashboard-container"]):
         # Left Sidebar 
         sidebar_class = "sidebar-open" if sidebar_open.value else "sidebar-closed"
