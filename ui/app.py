@@ -97,7 +97,7 @@ def Page():
                  
         .help-btn { position: absolute !important; top: 30px; right: 30px;}
                  
-        .back-btn { color: white !important; background-color: #666 !important; box-shadow: 0px 6px 0px 0px #444 !important; }
+        .back-btn { color: #666 !important; background-color: #f0f0f0 !important; box-shadow: 0px 6px 0px 0px #113F67 !important; }
                  
         .input {
             line-height: 28px;
