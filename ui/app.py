@@ -33,8 +33,8 @@ def Page():
         .push-button { font-size: clamp(0.875rem, 0.47vw + 0.7rem, 1rem) !important; border: none !important; border-radius: 8px !important; padding: 10px 20px !important; transition: none !important; text-transform: none !important; cursor: pointer; position: relative; top: 0; }
         .push-button:active { transform: translateY(6px) !important; box-shadow: none !important; } 
         
-        .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #113F67 !important; border: 1px solid #113F67 !important; }
-        .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; border: 1px solid #DDDDDD !important; }
+        .action-btn { background-color: #1C6EA4 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #113F67 !important; } 
+        .toggle-btn, .google-auth { background-color: #FFFFFF !important; color: #444444 !important; box-shadow: 0px 6px 0px 0px #DDDDDD !important; }
         
         .red-btn { background-color: #CD5656 !important; color: #FFFFFF !important; box-shadow: 0px 6px 0px 0px #AF3E3E !important; border: 1px solid #AF3E3E !important; }
                  
@@ -96,6 +96,8 @@ def Page():
         .menu-btn { position: absolute !important; top: 30px; left: 30px; }
                  
         .help-btn { position: absolute !important; top: 30px; right: 30px;}
+                 
+        .back-btn { color: white !important; background-color: #666 !important; box-shadow: 0px 6px 0px 0px #444 !important; }
                  
         .input {
             line-height: 28px;
@@ -190,14 +192,22 @@ def Page():
             text-align: justify;
             line-height: 1.5;
         }
+                 
+        .results-top-container {
+            padding: 10px;
+            align-items: center; 
+            display: flex; 
+            justify-content: space-between;
+            flex-direction: row;
+        }
 
         /* Hidden on desktop, shown on mobile */
         .mobile-close-btn { display: none !important;}   
                        
         /* Toggle Button */
-        .segmented-control .v-btn-toggle { background-color: #f0f0f0 !important; border-radius: 12px !important; padding: 4px !important; border: none !important; }
+        .segmented-control .v-btn-toggle { background-color: #f0f0f0 !important; border-radius: 12px !important; padding: 4px !important; border-bottom: 4px solid #113F67 !important; }
         .segmented-control .v-btn { border-radius: 12px !important; text-transform: none !important; font-family: 'Roboto Mono', monospace !important; letter-spacing: 0 !important; border: none !important; color: #666 !important; }
-        .segmented-control .v-btn--active { background-color: #113F67 !important; color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; }
+        .segmented-control .v-btn--active { background-color: #1C6EA4 !important; color: white !important; box-shadow: 0 2px 4px rgba(0,0,0,0.1) !important; }
                           
         /* Custom Modal CSS */
         .modal-overlay { position: fixed;top: 0; left: 0; width: 100vw; height: 100vh;background-color: rgba(28, 110, 164, 0.4); /* dark blue with transparency */z-index: 9999; /* Force to the front */display: flex;justify-content: center;align-items: center;backdrop-filter: blur(4px); /* frosted glass effect */}
@@ -299,6 +309,12 @@ def Page():
 
             /* Modal fits mobile screen */
             .modal-content { width: 92%; min-width: unset; padding: 20px; }
+                 
+            .results-top-container {
+                flex-direction: column;
+                padding-top: 20px;
+                gap: 20px;
+            }
             
             .segmented-control .v-btn-toggle { padding: 2px !important;}
             .segmented-control .v-btn .v-btn__content {

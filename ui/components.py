@@ -276,8 +276,8 @@ def DashboardScreen():
                 with solara.Column(style={"background": "white", "width": "100%", "gap": "1.25rem"}):
                     
                     # Header Row 
-                    with solara.Row(justify="space-between", style={"padding": "10px", "align-items": "center"}):
-                        solara.Button("Back", icon_name="mdi-arrow-left", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium"])
+                    with solara.Div(classes=["results-top-container"]):
+                        solara.Button("Back", icon_name="mdi-arrow-left", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-regular", "back-btn", "push-button"])
                         with solara.Div(classes=["segmented-control"]):
                             with solara.ToggleButtonsSingle(value=display_mode, mandatory=True):
                                 solara.Button("Summary", value="summary")
@@ -393,7 +393,7 @@ def DashboardScreen():
                                                 style={"font-size": "clamp(0.875rem, 0.85rem + 0.125vw, 1rem)", "margin-bottom": "1rem"}
                                             )
                         with solara.Row(justify="end"):
-                            solara.Button("Back", icon_name="mdi-arrow-left", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium"])
+                            solara.Button("Back", icon_name="mdi-arrow-left", on_click=lambda: [selected_article_data.set(None), notes_input.set(""), save_status.set("")],  text=True, classes=["roboto-mono-medium", "back-btn", "push-button"])
                         
                         # Save status
                         if save_status.value == "success":
