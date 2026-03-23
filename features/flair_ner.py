@@ -28,15 +28,14 @@ def normalize_entity(text: str) -> str:
     """
     Converts an extracted entity string to a standardized base form.
 
-    Lowercases each token, applies WordNet lemmatization to reduce
-    inflected forms (e.g. plurals) to their base form, then applies
-    title casing for consistent display.
+    Applies WordNet lemmatization to reduce
+    inflected forms (e.g. plurals) to their base form
 
     Args:
         text: The raw entity string as extracted by the NER model.
 
     Returns:
-        A title-cased string with each word reduced to its base form.
+        A string with each word reduced to its base form.
     """
     # Tokenize and get Part-of-Speech tags
     tokens = word_tokenize(text)
@@ -50,7 +49,7 @@ def normalize_entity(text: str) -> str:
             normalized_words.append(word)
         else:
             # For common nouns/verbs, use lemmatization
-            res = lemmatizer.lemmatize(word.lower())
+            res = lemmatizer.lemmatize(word)
             normalized_words.append(res)
             
     return " ".join(normalized_words)
