@@ -397,7 +397,8 @@ def DashboardScreen():
                         
                         # Save status
                         if save_status.value == "success":
-                            solara.Success("Analysis Saved", on_close=lambda: save_status.set(""))
+                            with solara.Row(justify="end", style={"padding-top": "20px"}):
+                                solara.Success("Analysis Saved", on_close=lambda: save_status.set(""))
                         elif "error" in save_status.value:
                             solara.Error(f"Cloud Save Failed: {save_status.value}", on_close=lambda: save_status.set(""))
 

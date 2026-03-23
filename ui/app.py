@@ -194,7 +194,7 @@ def Page():
         }
                  
         .results-top-container {
-            padding: 10px;
+            padding: 20px;
             align-items: center; 
             display: flex; 
             justify-content: space-between;
