@@ -120,7 +120,7 @@ def Page():
             display: block;
             color: #113F67;
             margin-bottom: 0.75rem;
-            font-size: 14px;
+            font-size: 16px;
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
@@ -130,7 +130,7 @@ def Page():
             -webkit-box-orient: vertical; 
             color: #444;
             line-height: 1.5;
-            font-size: clamp(11px, 1.1vw, 12px) !important;
+            font-size: clamp(13px, 1.1vw, 14px) !important;
             text-align: justify;
             hyphens: auto;
             overflow: hidden;
@@ -165,7 +165,7 @@ def Page():
             hyphens: auto;
             color: #555;
             line-height: 1.6;
-            font-size: clamp(13px, 1.1vw, 14px) !important;
+            font-size: clamp(14px, 1.1vw, 15px) !important;
         }
                  
         .info-clamp-text:hover {
@@ -187,7 +187,7 @@ def Page():
         }
                  
         .disclaimer-text {
-            font-size: clamp(11px, 1.1vw, 12px) !important;
+            font-size: clamp(12px, 1.1vw, 13px) !important;
             font-family: 'Roboto Mono', monospace;
             text-align: justify;
             line-height: 1.5;

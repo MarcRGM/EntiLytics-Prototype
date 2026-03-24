@@ -427,7 +427,7 @@ def DashboardScreen():
                             with solara.Row(gap="12px", style={"align-items": "start", "flex-wrap": "nowrap"}):
                                 solara.v.Icon(
                                     children=["mdi-rss-box"], 
-                                    style_="color: #1C6EA4; font-size: 24px; margin-top: -2px;"
+                                    style_="color: #1C6EA4; font-size: 25px; margin-top: -2px;"
                                 )
                                 
                                 with solara.Div(style={"width": "100%"}):
@@ -514,29 +514,31 @@ def DashboardScreen():
                     # System Information & Disclaimer Section
                     with solara.Div(style={"width": "100%", "max-width": "850px", "margin": "20px auto", "padding": "0 15px"}):
                         
-                        # Usage
+                        # Info
                         with solara.Div(classes=["info-container"]):
-                            solara.Text("System Information & Usage Guide", classes=["roboto-mono-medium"], 
-                                        style={"display": "block", "margin-bottom": "10px", "color": "#1C6EA4", "font-size": "16px", "text-transform": "uppercase", "border-bottom": "2px solid #FADA7A"})
+                            solara.Text("System Information", classes=["roboto-mono-medium"], 
+                                        style={"display": "block", "margin-bottom": "10px", "color": "#1C6EA4", "font-size": "17px", "text-transform": "uppercase", "border-bottom": "2px solid #FADA7A"})
                             
                             with solara.Div(classes=["info-clamp-text"], style={"color": "#444"}):
                                 solara.HTML(unsafe_innerHTML="""
                                     <b>Entities:</b> Entities are names of people, organizations, and locations detected in the article. If none appear, the content may not contain recognizable proper nouns, or the text is too short for the model to process confidently.<br><br>
-                                    <b>Ranked Entities:</b> Not all detected entities are equally important. The system scores each entity by how closely it relates to the article as a whole. Only entities that pass the relevance threshold are ranked and displayed.<br><br>
-                                    <b>Relationship Network:</b> The network map shows connections between the top-ranked entities based on how often they appear together in the same context. It will not generate if fewer than two important entities are found. Note that some entities may appear in the map without any connections, as they are still considered important to the article but do not share enough context with other entities to form a relationship.<br><br>
-                                    <b>RSS Feed URL:</b> An RSS feed is a link that news websites provide to share their latest articles automatically. Paste one here and the system will fetch and list the available articles for you to analyze.
+                                    <b>Ranked Entities:</b> Not all detected entities are equally important. The system scores each entity by how closely it relates to the article as a whole. Only entities that pass the relevance threshold are ranked and displayed. The distance score indicates importance: the closer the value is to 0, the more central and important the entity is to the content.<br><br>
+                                    <b>Relationship Network:</b> The network map shows connections between the top-ranked entities based on how often they appear together in the same context. It will not generate if fewer than two important entities are found. Note that some entities may appear in the map without any connections, as they are still considered important to the article but do not share enough context with other entities to form a relationship.
                                 """)
 
                         # Disclaimer
                         with solara.Div(classes=["disclaimer-container"]):
                             with solara.Row(style={"align-items": "center", "margin-bottom": "8px", "background-color": "transparent", "gap": "8px"}):
-                                solara.v.Icon(children=["mdi-alert-circle-outline"], style_="color: #fbfbfb; font-size: 13px;")
+                                solara.v.Icon(children=["mdi-alert-circle-outline"], style_="color: #fbfbfb; font-size: 14px;")
                                 solara.Text("Content Disclaimer", classes=["roboto-mono-medium"], 
-                                            style={"color": "#fbfbfb","font-size": "14px", "text-transform": "uppercase"})
+                                            style={"color": "#fbfbfb","font-size": "15px", "text-transform": "uppercase"})
                             
                             with solara.Div(classes=["disclaimer-text"], style={"color": "#fbfbfb"}):
                                 solara.HTML(unsafe_innerHTML="""
-                                    EntiLytics analyzes the structure and entities of the text provided. It does not verify the accuracy of the content or detect misinformation and fake news. The system is designed for use with news articles and performs best on factual, entity-rich content. While the system will still process any text submitted, results may be less meaningful for non-news content such as opinions, fiction, or social media posts, as these may lack the named entities and structure the system is built around.
+                                    <b>EntiLytics analyzes the linguistic structure and named entities of submitted text. Please note the following:</b><br><br>
+                                    <b>No Fact-Checking:</b> The system identifies entities but does not verify the factual accuracy of the content, nor does it detect misinformation or fake news.<br><br>
+                                    <b>Extraction Redundancy:</b> Due to current model limitations, some entities may appear multiple times as fragments. Users should review the Relationship Network with this in mind.<br><br>
+                                    <b>Domain Specificity:</b> The system is optimized for factual, entity-rich news articles. Results for non-news content, such as opinions, fiction, or social media posts, may be less meaningful as they often lack the formal structure the system is built around.
                                 """)
 
                 # Only show if the user is an admin
