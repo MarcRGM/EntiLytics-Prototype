@@ -63,7 +63,7 @@ summary_recall_list = []
 summary_f1_list = []
 skipped_article_count = 0
 
-print("SUMMARIZATION EVALUATION -- ENTITY COVERAGE F1\n")
+print("SUMMARIZATION EVALUATION - ENTITY COVERAGE F1\n")
 
 for _, article_row in articles_dataframe.iterrows():
     # Extract gold entities from headline
@@ -120,10 +120,10 @@ for _, article_row in articles_dataframe.iterrows():
 
     # Print per-article results
     print(f"[{article_row['source']}] {article_row['headline'][:65]}...")
-    print(f"  Gold entities     : {gold_headline_entities}")
-    print(f"  Found in summary  : {gold_entities_in_summary}")
-    print(f"  P={entity_precision:.2f}  R={entity_recall:.2f}  F1={entity_f1:.2f}")
-    print(f"  Summary ({generated_summary['sentence_count']} sentences): "
+    print(f"Gold entities: {gold_headline_entities}")
+    print(f"Found in summary: {gold_entities_in_summary}")
+    print(f"P={entity_precision:.2f}  R={entity_recall:.2f}  F1={entity_f1:.2f}")
+    print(f"Summary ({generated_summary['sentence_count']} sentences): "
           f"{generated_summary['summary'][:120]}...\n")
 
 
@@ -139,7 +139,7 @@ average_f1 = sum(summary_f1_list) / total_evaluated_articles
 
 print(f"RESULTS ({total_evaluated_articles} articles evaluated, "
       f"{skipped_article_count} skipped)\n")
-print("SUMMARIZATION -- Entity Coverage F1")
-print(f"  Mean Precision : {average_precision:.4f}")
-print(f"  Mean Recall    : {average_recall:.4f}")
-print(f"  Mean F1        : {average_f1:.4f}")
+print("SUMMARIZATION - Entity Coverage F1")
+print(f"Mean Precision: {average_precision:.4f}")
+print(f"Mean Recall: {average_recall:.4f}")
+print(f"Mean F1: {average_f1:.4f}")
