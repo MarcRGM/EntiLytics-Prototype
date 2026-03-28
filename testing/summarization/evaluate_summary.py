@@ -1,8 +1,7 @@
 """
 Summarization Evaluation: Entity Coverage F1
 
-Evaluates EntiLytics summarization against a gold standard derived from 
-article headlines.
+Evaluates EntiLytics summarization against headlines entities.
 
 Gold Standard: Named entities extracted from headlines using Flair NER.
 Research shows headline entities are primary content subjects, making them 
@@ -40,20 +39,70 @@ if not csv_dataset_path.exists():
 articles_dataframe = pd.read_csv(csv_dataset_path)
 print(f"Loaded {len(articles_dataframe)} articles from {csv_dataset_path}")
 
-# Filter stub articles (RSS placeholders with no real content)
-initial_article_count = len(articles_dataframe)
-articles_dataframe = articles_dataframe[
-    ~articles_dataframe["full_text"].str.strip().str.match(r"^The post .+ appeared first on .+\.$")
-]
-print(f"Filtered {initial_article_count - len(articles_dataframe)} stub articles, "
-      f"{len(articles_dataframe)} remaining\n")
+def is_acronym_of(short, long):
+    """Check if short is an acronym of long"""
+    if len(short) < 2:
+        return False
+    words = [w for w in long.split() if w]
+    if len(words) < len(short):
+        return False
+    return short == "".join(w[0] for w in words)
+
+
+def is_partial_acronym_of(short, long):
+    """Check if short is an acronym ignoring function words"""
+    if len(short) < 2:
+        return False
+    stop_words = {"for", "of", "the", "and", "in", "at", "by", "a", "an"}
+    content_words = [w for w in long.split() if w not in stop_words]
+    if len(content_words) < len(short):
+        return False
+    return short == "".join(w[0] for w in content_words)
+
+
+def is_match(entity_a, entity_b):
+    """Check if two entities are the same (handles exact, substring, and acronym variations)"""
+    a = entity_a.strip().lower()
+    b = entity_b.strip().lower()
+
+    if not a or not b:
+        return False
+
+    # Exact match
+    if a == b:
+        return True
+
+    # Short entities (< 3 chars) only match via acronym to avoid false positives
+    if len(a) < 3 or len(b) < 3:
+        return (is_acronym_of(a, b) or is_acronym_of(b, a) or
+                is_partial_acronym_of(a, b) or is_partial_acronym_of(b, a))
+
+    # Longer entities can match via substring
+    if a in b or b in a:
+        return True
+
+    # Also check acronym variations for longer entities
+    return (is_acronym_of(a, b) or is_acronym_of(b, a) or
+            is_partial_acronym_of(a, b) or is_partial_acronym_of(b, a))
+
+
+def is_valid_gold_entity(text):
+    """Filter out NER mistakes - reject very long phrases and clauses that aren't true named entities"""
+    words = text.split()
+    if len(words) > 5:  # Too long to be a named entity
+        return False
+    clause_markers = {"to", "would", "did", "have", "said", "says", "want", "wants"}
+    if any(w in clause_markers for w in words):  # Contains action verbs, likely not an NE
+        return False
+    return True
 
 
 def extract_gold_entities_from_headline(headline_text):
-    """Extract named entities from headline as gold standard."""
-    extracted_entities = identify_entities(headline_text)
+    """Get the named entities from headline, filtered to remove false positives"""
+    entities = identify_entities(headline_text)
     return set(
-        entity["text"].lower() for entity in extracted_entities
+        e["text"].lower() for e in entities
+        if is_valid_gold_entity(e["text"].lower())
     )
 
 
