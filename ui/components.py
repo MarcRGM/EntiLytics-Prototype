@@ -188,12 +188,32 @@ def DashboardScreen():
                     else:
                         with solara.Column(style={"gap": "5px", "background-color": "transparent"}):
                             for article in filtered_list:
+                                # Check if this article is currently being viewed
+                                is_current = (
+                                    selected_article_data.value and # check if it exist
+                                    "articleid" in selected_article_data.value and # check this too
+                                    selected_article_data.value["articleid"] == article.articleid # continue here if both exist to avoid error
+                                )
+                                
+                                # Highlight background if this is the current article
+                                highlight_style = {
+                                    "color": "white", 
+                                    "background": "#0A2A47" if is_current else "#113F67",  # Darker blue when highlighted
+                                    "justify-content": "flex-start", 
+                                    "text-transform": "none", 
+                                    "border-radius": "0", 
+                                    "width": "100%", 
+                                    "overflow": "hidden",
+                                    "border-left": "4px solid #FADA7A" if is_current else "4px solid transparent",  # Yellow left border when active
+                                    "transition": "all 0.2s ease"  # Smooth color transition
+                                }
+
                                 solara.Button(
                                     f"{article.title}", 
                                     on_click=lambda a=article: [display_historical_analysis(a.articleid), sidebar_open.set(False)],
                                     text=True, 
                                     classes=["roboto-mono-medium", "article-btn-text"],
-                                    style={"color": "white", "background": "#113F67", "justify-content": "flex-start", "text-transform": "none", "border-radius": "0", "width": "100%", "overflow": "hidden"}
+                                    style=highlight_style
                                 )
                 
                 # Logout logic
