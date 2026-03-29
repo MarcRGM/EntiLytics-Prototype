@@ -91,7 +91,7 @@ def entity_ranking(article_description, entity_list):
         # This is the standard Geometric Scaling for Manhattan distance in BERT research
         # Max Manhattan distance between L2-normalized vectors is 2 * sqrt(d)
         # 384 is the dimension of the all-MiniLM-L6-v2 model
-        scaling_factor = 2 * np.sqrt(384) # This is ~19.6
+        scaling_factor = 2 * np.sqrt(384) # ~39.2
         # Scaling: Divide to get a 0.0-1.0 Distance Score
         normalized_dist = raw_dist / scaling_factor
 
