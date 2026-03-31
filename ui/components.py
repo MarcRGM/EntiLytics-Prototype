@@ -461,9 +461,34 @@ def DashboardScreen():
                                         (raw text). To use it here, simply <b>copy the URL</b> from your browser's 
                                         address bar and paste it into the field above.
                                         <br><br>
+                                        <b>Find RSS Feeds:</b> Browse available feeds at 
+                                        <a href="https://rss.feedspot.com/world_news_rss_feeds/" target="_blank" style="color: #1C6EA4; text-decoration: underline;">World News RSS Feeds</a> 
+                                        or 
+                                        <a href="https://rss.feedspot.com/philippines_news_rss_feeds/" target="_blank" style="color: #1C6EA4; text-decoration: underline;">Philippines News RSS Feeds</a>
+                                        <br><br>
                                         <i style="color: #444; font-size: 0.9em;">Note: Availability depends on the publisher. 
                                         Some feeds may only provide short summaries rather than the full article text.</i>
+                                        <br><br>
                                     """)
+                                    # Quick-fetch buttons for popular feeds
+                                    solara.Text("Quick Fetch Popular Feeds", classes=["rss-info-header", "roboto-mono-medium"], style={"color": "#1C6EA4", "text-align": "center"})
+                                    
+                                    with solara.Row(justify='center', style={"padding-bottom": "10px", "gap": "10px", "flex-wrap": "wrap", "background-color": "transparent"}):
+                                        solara.Button(
+                                            "Manila Times",
+                                            classes=["push-button", "back-btn", "roboto-mono-regular"],
+                                            on_click=lambda: [rss_link.set("https://www.manilatimes.net/news/feed/"), handle_rss_fetch()]
+                                        )
+                                        solara.Button(
+                                            "Tech Pinas",
+                                            classes=["push-button", "back-btn", "roboto-mono-regular"],
+                                            on_click=lambda: [rss_link.set("http://feeds.feedburner.com/Techpinas"), handle_rss_fetch()]
+                                        )
+                                        solara.Button(
+                                            "The Guardian",
+                                            classes=["push-button", "back-btn", "roboto-mono-regular"],
+                                            on_click=lambda: [rss_link.set("https://www.theguardian.com/international/rss"), handle_rss_fetch()]
+                                        )
 
                     # Action Buttons Row
                     with solara.Row(classes=["form-action-row"], style={"background-color": "transparent", "justify-content": "center"}):
