@@ -1,3 +1,4 @@
+import solara
 import sys
 sys.dont_write_bytecode = True
 
@@ -40,32 +41,58 @@ def fetch_articles(rss_url):
     finally:
         is_loading.set(False)
 
-def analyze_article(article):
-    is_loading.set(True)
-    try:
-        # Clean the text using BeautifulSoup
-        soup = BeautifulSoup(article['description'], "html.parser")
-        clean_text = soup.get_text(separator=" ")
+# Global reference to analysis worker
+analysis_worker_ref = None
 
-        # Run NLP Pipeline
-        entities = identify_entities(clean_text)
-        rankings = entity_ranking(clean_text, entities)
-        summary = generate_summary(clean_text, rankings)
+@solara.component
+def AnalysisWorker():
+    """Background worker component for article analysis"""
+    article_to_analyze = solara.use_reactive(None)
+    
+    def run_analysis():
+        if article_to_analyze.value is None:
+            return
         
-        # Generate Map
-        top_names = [e['name'] for e in rankings]
-        graph_html = mapping(clean_text, top_names) if len(top_names) > 1 else ""
+        article = article_to_analyze.value
+        is_loading.set(True)
+        try:
+            soup = BeautifulSoup(article['description'], "html.parser")
+            clean_text = soup.get_text(separator=" ")
 
-        selected_article_data.set({
-            "title": article['title'],
-            "original-text": clean_text,
-            "summary": summary['summary'],
-            "graph": graph_html,
-            "all_entities": entities,
-            "rankings": rankings
-        })
-    finally:
-        is_loading.set(False)
+            entities = identify_entities(clean_text)
+            rankings = entity_ranking(clean_text, entities)
+            summary = generate_summary(clean_text, rankings)
+            
+            top_names = [e['name'] for e in rankings]
+            graph_html = mapping(clean_text, top_names) if len(top_names) > 1 else ""
+
+            selected_article_data.set({
+                "title": article['title'],
+                "original-text": clean_text,
+                "summary": summary['summary'],
+                "graph": graph_html,
+                "all_entities": entities,
+                "rankings": rankings
+            })
+        finally:
+            is_loading.set(False)
+            article_to_analyze.set(None)
+    
+    # Run analysis when article is set
+    solara.use_thread(run_analysis, dependencies=[article_to_analyze.value])
+    
+    # Store in global variable
+    global analysis_worker_ref
+    analysis_worker_ref = article_to_analyze
+    
+    # Return empty div
+    return solara.Div(style={"display": "none"})
+
+def analyze_article(article):
+    if analysis_worker_ref is not None:
+        analysis_worker_ref.set(article)
+    else:
+        print("ERROR: Analysis worker not initialized")
 
 def handle_manual_analysis():
     # Reset error first
@@ -85,10 +112,47 @@ def handle_manual_analysis():
         error_message.set("Please provide a description with at least one sentence.")
         return
 
-    analyze_article({
-        'title': title, 
-        'description': desc
-    })
+    if analysis_worker_ref is not None:
+        analysis_worker_ref.set({
+            'title': title, 
+            'description': desc
+        })
+    else:
+        print("ERROR: Analysis worker not initialized")
+
+# Global reference to RSS worker
+rss_worker_ref = None
+
+@solara.component
+def RSSWorker():
+    """Background worker component for RSS fetching"""
+    url_to_fetch = solara.use_reactive(None)
+    
+    def run_fetch():
+        if url_to_fetch.value is None:
+            return
+        
+        url = url_to_fetch.value
+        is_loading.set(True)
+        try:
+            fetched = fetch_rss_articles(url)
+            rss_feed_results.set(fetched)
+            selected_article_data.set(None)
+        except Exception as e:
+            error_message.set(f"RSS Error: {e}")
+            print(f"RSS Error: {e}")
+        finally:
+            is_loading.set(False)
+            url_to_fetch.set(None)
+    
+    # Run fetch when URL is set
+    solara.use_thread(run_fetch, dependencies=[url_to_fetch.value])
+    
+    # Store in global variable
+    global rss_worker_ref
+    rss_worker_ref = url_to_fetch
+    
+    return solara.Div(style={"display": "none"})
 
 def handle_rss_fetch():
     error_message.set("")
@@ -103,7 +167,11 @@ def handle_rss_fetch():
         error_message.set("RSS URL must start with http:// or https://")
         return
     
-    fetch_articles(url)
+    # Use the worker to fetch in background
+    if rss_worker_ref is not None:
+        rss_worker_ref.set(url)
+    else:
+        print("ERROR: RSS worker not initialized")
 
 def sync_user_to_db(email):
     """Ensures the Google user exists in the Azure Account table."""

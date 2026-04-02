@@ -17,8 +17,8 @@ from state import (
 )
 from logic import (
     sync_user_to_db, create_session, resolve_session,
-    fetch_articles, analyze_article, handle_manual_analysis, handle_rss_fetch,
-    get_saved_titles, display_historical_analysis, save_to_azure,
+    fetch_articles, AnalysisWorker, analyze_article, handle_manual_analysis, handle_rss_fetch,
+    RSSWorker, get_saved_titles, display_historical_analysis, save_to_azure,
     delete_current_article, delete_user_from_db, get_user_activity
 )
 
@@ -144,6 +144,10 @@ def LoginScreen():
 @solara.component
 def DashboardScreen():
     solara.use_router().push("/")
+    # Create both workers at the top
+    AnalysisWorker()
+    RSSWorker()
+
     with solara.Div(classes=["dashboard-container"]):
         # Left Sidebar 
         sidebar_class = "sidebar-open" if sidebar_open.value else "sidebar-closed"
