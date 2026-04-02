@@ -89,13 +89,24 @@ def Page():
                  
         .dashboard-container { display: flex; height: 100vh; width: 100vw; margin: 0; overflow: hidden; animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1); }
         @keyframes slideUp { 0% { transform: translateY(100vh); } 100% { transform: translateY(0); } }
-        .sidebar { background-color: #113F67; color: white; display: flex; flex-direction: column; justify-content: space-between; transition: width 0.3s ease, padding 0.3s ease; overflow: hidden; white-space: nowrap; z-index: 1000;}
+        .sidebar { 
+            background: linear-gradient(180deg, #113F67 0%, #0d2a47 100%);
+            color: white; 
+            display: flex; 
+            flex-direction: column; 
+            justify-content: space-between; 
+            transition: width 0.3s ease, padding 0.3s ease; 
+            overflow: hidden; 
+            white-space: nowrap; 
+            z-index: 1000;
+            box-shadow: 4px 0 16px rgba(0,0,0,0.15);
+        }
         .sidebar-open { width: 25%; padding: 20px 20px; transition: 0.3s; }
         .sidebar-closed { width: 0%; padding: 0px; overflow: hidden; transition: 0.3s; }
-        .sidebar ::-webkit-scrollbar { width: 5px; }
-        .sidebar ::-webkit-scrollbar-track { background: transparent; }
-        .sidebar ::-webkit-scrollbar-thumb { background: rgba(255, 255, 255, 0.2); border-radius: 10px; }
-        .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255, 255, 255, 0.4); }  
+        .sidebar ::-webkit-scrollbar { width: 6px; }
+        .sidebar ::-webkit-scrollbar-track { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .sidebar ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        .sidebar ::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,0.3); }  
 
         /* Saved articles */
         .article-btn-text { white-space: nowrap; overflow: hidden !important; font-size: clamp(0.75rem, 0.56vw + 0.54rem, 0.9rem) !important; }
@@ -233,6 +244,10 @@ def Page():
             font-family: 'Roboto Mono', monospace;
             text-align: justify;
             line-height: 1.5;
+        }
+                 
+        .disclaimer-text b {
+            color: #FADA7A;
         }
                  
         .results-top-container {
