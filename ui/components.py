@@ -102,10 +102,22 @@ def SessionRestorer():
         if user_info:
             current_user.set(user_info)
             current_session_id.set(sid)
+            # Store in localStorage as backup
+            solara.HTML(tag="script", unsafe_innerHTML=f"""
+                localStorage.setItem('entil_session_id', '{sid}');
+            """)
+        else:
+            # Try localStorage backup
+            solara.HTML(tag="script", unsafe_innerHTML="""
+                var savedSid = localStorage.getItem('entil_session_id');
+                if (savedSid) {
+                    window.location.reload();
+                }
+            """)
         
         is_checking_session.set(False)
 
-    solara.use_effect(recover, [])
+    solara.use_effect(recover, [sid])
     return solara.Div(style={"display": "none"})
 
 
