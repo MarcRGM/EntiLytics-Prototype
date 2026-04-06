@@ -111,13 +111,14 @@ def SessionRestorer():
             solara.HTML(tag="script", unsafe_innerHTML="""
                 var savedSid = localStorage.getItem('entil_session_id');
                 if (savedSid) {
-                    window.location.reload();
+                    fetch('/__solara/api/session/set/' + savedSid, {method: 'POST'})
+                    .then(() => window.location.reload());
                 }
             """)
         
         is_checking_session.set(False)
 
-    solara.use_effect(recover, [sid])
+    solara.use_effect(recover, [])
     return solara.Div(style={"display": "none"})
 
 
@@ -154,8 +155,11 @@ def LoginScreen():
                 if created_sid:
                     current_user.set(user_info)
                     current_session_id.set(sid)
-                    # Solara manages the session cookie
-                    solara.HTML(tag="script", unsafe_innerHTML="window.location.href = '/';")
+                    # Save to localStorage for session persistence across refreshes
+                    solara.HTML(tag="script", unsafe_innerHTML=f"""
+                        localStorage.setItem('entil_saved_sid', '{sid}');
+                        window.location.href = '/';
+                    """)
 
     solara.use_effect(handle_oauth, [auth_code])
     
