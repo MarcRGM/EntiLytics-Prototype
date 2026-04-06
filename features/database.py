@@ -1,6 +1,6 @@
 import os
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text, Column, BigInteger, String, Text, ForeignKey, DateTime
 from sqlalchemy.orm import sessionmaker, declarative_base
@@ -41,8 +41,8 @@ class UserSession(Base):
     gmail = Column(String, ForeignKey("account.gmail"), nullable=False)
     name = Column(String,   nullable=False)
     picture = Column(String,   nullable=True)
-    expires_at = Column(DateTime, nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    expires_at = Column(DateTime(timezone=True), nullable=False)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))
 
 # Content Storage 
 class Article(Base):
