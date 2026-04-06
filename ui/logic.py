@@ -6,7 +6,7 @@ import json
 import uuid
 import nltk
 from nltk.tokenize import sent_tokenize
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from bs4 import BeautifulSoup
 
 from features.flair_ner import identify_entities
@@ -367,7 +367,15 @@ def resolve_session(sid):
     try:
         session = db.query(UserSession).filter(UserSession.session_id == sid).first()
         if session:
-            if datetime.utcnow() < session.expires_at:
+            # Use timezone-aware comparison
+            now = datetime.now(timezone.utc)
+            expires = session.expires_at
+            
+            # Make expires_at timezone-aware if it isn't
+            if expires.tzinfo is None:
+                expires = expires.replace(tzinfo=timezone.utc)
+            
+            if now < expires:
                 user_acc = db.query(Account).filter(Account.gmail == session.gmail).first()
                 if user_acc:
                     current_role.set(user_acc.account_role)
@@ -385,7 +393,6 @@ def create_session(user_info, sid):
     """Stores the Solara Session ID in the database."""
     db = SessionLocal()
     try:
-        # Check if session already exists for this ID
         existing = db.query(UserSession).filter(UserSession.session_id == sid).first()
         if existing:
             return sid
@@ -395,7 +402,7 @@ def create_session(user_info, sid):
             gmail=user_info["email"],
             name=user_info.get("name", "User"),
             picture=user_info.get("picture", ""),
-            expires_at=datetime.utcnow() + timedelta(days=7)
+            expires_at=datetime.now(timezone.utc) + timedelta(days=7)  
         )
         
         db.add(new_session)
