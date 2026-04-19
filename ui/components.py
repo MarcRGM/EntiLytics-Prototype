@@ -1012,7 +1012,7 @@ def DashboardScreen():
                             with solara.Div(classes=["disclaimer-text"], style={"color": COLORS["bg_white"]}):
                                 solara.HTML(unsafe_innerHTML=f"""
                                     <b>No Fact-Checking:</b> The system identifies entities but does not verify the factual accuracy of the content, nor does it detect misinformation or fake news.<br><br>
-                                    <b>Extraction Redundancy:</b> Due to current model limitations, some entities may appear multiple times as fragments. Users should review the Relationship Network with this in mind.<br><br>
+                                    <b>Nested Entity Splitting:</b> Due to current model limitations, the system may occasionally split nested entities into separate entries. Users should review the Relationship Network with this in mind.<br><br>
                                     <b>Domain Specificity:</b> The system is optimized for factual, entity-rich news articles. Results for non-news content, such as opinions, fiction, or social media posts, may be less meaningful as they often lack the formal structure the system is built around.
                                 """)
 
