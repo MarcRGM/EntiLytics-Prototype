@@ -105,11 +105,16 @@ def handle_manual_analysis():
     if not title or not desc:
         error_message.set("Please provide both a news title and article content.")
         return
+
+    # Require at least one word in the title
+    if len(title.split()) < 1:
+        error_message.set("Please provide a title with at least one word.")
+        return
     
     # require at least one sentence in the description
-    sentences = sent_tokenize(desc)
-    if len(sentences) == 0:
-        error_message.set("Please provide a description with at least one sentence.")
+    word_count = len(desc.split())
+    if word_count < 15:
+        error_message.set(f"Your description is too short ({word_count} words). Please provide a longer description.")
         return
 
     if analysis_worker_ref is not None:
