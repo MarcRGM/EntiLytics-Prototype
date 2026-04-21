@@ -114,7 +114,7 @@ def handle_manual_analysis():
     # require at least one sentence in the description
     word_count = len(desc.split())
     if word_count < 15:
-        error_message.set(f"Your description is too short ({word_count} words). Please provide a longer description.")
+        error_message.set(f"Your description is too short ({word_count} word/s). Please provide a longer description.")
         return
 
     if analysis_worker_ref is not None:
