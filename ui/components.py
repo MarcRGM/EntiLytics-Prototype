@@ -1193,7 +1193,7 @@ def AdminPage():
                         if not is_pending:
                             solara.Button(
                                 icon_name="mdi-delete", 
-                                on_click=lambda uid=user.accountid: delete_confirm_id.set(uid),
+                                on_click=lambda uid=user.accountid: (delete_confirm_id.set(uid), notes_input.set("")),
                                 disabled=is_admin,
                                 classes=["push-button", "red-btn"] if not is_admin else [],
                                 style={
